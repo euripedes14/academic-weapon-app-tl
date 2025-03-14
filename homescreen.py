@@ -46,10 +46,7 @@ menu_bar.add_command(label="Ρυθμίσεις", command=open_settings)
 label = tk.Label(root, text="Καλώς ήρθατε στο LockIN", font=("Arial", 14))
 label.pack(pady=20)
 
-# Δημιουργία frame για το πρόγραμμα
 schedule_frame = tk.Frame(root, bg="#f2f2f2")
-
-# Δημιουργία frame για το πρόγραμμα σίτισης και την παρακολούθηση της κατανάλωσης νερού
 nutrition_frame = tk.Frame(root, bg="#f2f2f2")
 
 # Εκκίνηση εφαρμογής

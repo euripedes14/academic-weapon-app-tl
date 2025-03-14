@@ -71,10 +71,8 @@ def open_schedule(schedule_frame):
     upcoming_events_tree.heading("Time", text="Time")
     upcoming_events_tree.pack(fill=tk.BOTH, expand=True)
 
-    # Show the calendar frame
     calendar_frame.pack(pady=20, fill=tk.BOTH, expand=True)
     past_events_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
     upcoming_events_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
 
-    # Adjust the size of the schedule_frame to take up 70% of the screen
     schedule_frame.place(relx=0.5, rely=0.5, anchor=tk.CENTER, relwidth=0.7, relheight=0.7)
