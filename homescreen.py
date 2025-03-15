@@ -3,51 +3,59 @@ from tkinter import messagebox
 from schedule_screen import open_schedule  # Import the open_schedule function
 from mam import open_nutrition  # Import the open_nutrition function
 
-def open_courses():
-    messagebox.showinfo("Εισαγωγή Μαθημάτων", "Μεταφορά στην οθόνη εισαγωγής μαθημάτων.")
+class HomeScreen:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("LockIN - Αρχική Οθόνη")
+        self.root.state("zoomed")
 
-def open_notifications():
-    messagebox.showinfo("Ειδοποιήσεις & Streaks", "Μεταφορά στην οθόνη ειδοποιήσεων.")
+        self.schedule_frame = tk.Frame(root, bg="#f2f2f2")
+        self.nutrition_frame = tk.Frame(root, bg="#f2f2f2")
 
-def open_settings():
-    messagebox.showinfo("Ρυθμίσεις", "Μεταφορά στις ρυθμίσεις εφαρμογής.")
+        self.create_menu()
+        self.create_title()
 
-def hide_all_frames():
-    schedule_frame.pack_forget()
-    nutrition_frame.pack_forget()
+    def create_menu(self):
+        # Δημιουργία μενού στο πάνω μέρος
+        menu_bar = tk.Menu(self.root)
+        self.root.config(menu=menu_bar)
 
-def show_nutrition():
-    hide_all_frames()
-    nutrition_frame.pack(fill=tk.BOTH, expand=True)
-    open_nutrition(nutrition_frame)
+        # Προσθήκη επιλογών στο μενού
+        menu_bar.add_command(label="Εισαγωγή Μαθημάτων", command=self.open_courses)
+        menu_bar.add_command(label="Τι έχει το πρόγραμμα?", command=self.show_schedule)
+        menu_bar.add_command(label="Τι θα φάμε σήμερα?", command=self.show_nutrition)
+        menu_bar.add_command(label="Ειδοποιήσεις & Streaks", command=self.open_notifications)
+        menu_bar.add_command(label="Ρυθμίσεις", command=self.open_settings)
 
-def show_schedule():
-    hide_all_frames()
-    schedule_frame.pack(fill=tk.BOTH, expand=True)
-    open_schedule(schedule_frame)
+    def create_title(self):
+        # Προσθήκη τίτλου
+        label = tk.Label(self.root, text="Καλώς ήρθατε στο LockIN", font=("Arial", 14))
+        label.pack(pady=20)
 
-# Δημιουργία του κύριου παραθύρου
-root = tk.Tk()
-root.title("LockIN - Αρχική Οθόνη")
-root.state("zoomed")
+    def open_courses(self):
+        messagebox.showinfo("Εισαγωγή Μαθημάτων", "Μεταφορά στην οθόνη εισαγωγής μαθημάτων.")
 
-# Δημιουργία μενού στο πάνω μέρος
-menu_bar = tk.Menu(root)
-root.config(menu=menu_bar)
+    def open_notifications(self):
+        messagebox.showinfo("Ειδοποιήσεις & Streaks", "Μεταφορά στην οθόνη ειδοποιήσεων.")
 
-# Προσθήκη επιλογών στο μενού
-menu_bar.add_command(label="Εισαγωγή Μαθημάτων", command=open_courses)
-menu_bar.add_command(label="Τι έχει το πρόγραμμα?", command=show_schedule)
-menu_bar.add_command(label="Τι θα φάμε σήμερα?", command=show_nutrition)
-menu_bar.add_command(label="Ειδοποιήσεις & Streaks", command=open_notifications)
-menu_bar.add_command(label="Ρυθμίσεις", command=open_settings)
+    def open_settings(self):
+        messagebox.showinfo("Ρυθμίσεις", "Μεταφορά στις ρυθμίσεις εφαρμογής.")
 
-# Προσθήκη τίτλου
-label = tk.Label(root, text="Καλώς ήρθατε στο LockIN", font=("Arial", 14))
-label.pack(pady=20)
+    def hide_all_frames(self):
+        self.schedule_frame.pack_forget()
+        self.nutrition_frame.pack_forget()
 
-schedule_frame = tk.Frame(root, bg="#f2f2f2")
-nutrition_frame = tk.Frame(root, bg="#f2f2f2")
+    def show_nutrition(self):
+        self.hide_all_frames()
+        self.nutrition_frame.pack(fill=tk.BOTH, expand=True)
+        open_nutrition(self.nutrition_frame)
 
-# Εκκίνηση εφαρμογής
-root.mainloop()
+    def show_schedule(self):
+        self.hide_all_frames()
+        self.schedule_frame.pack(fill=tk.BOTH, expand=True)
+        open_schedule(self.schedule_frame)
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = HomeScreen(root)
+    root.mainloop()
