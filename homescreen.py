@@ -3,8 +3,8 @@ from tkinter import messagebox
 from schedule_screen import open_schedule     # Import the open_schedule function
 from mam import open_nutrition                # Import the open_nutrition function
 from settings import SettingsMenuApp
-from statistics_screen import StatisticsClass
-
+from courses import open_courses_screen
+from task import open_task_screen  # Import the new task screen function
 
 def open_settings(parent_frame):
     """Display the settings screen in the given parent frame."""
@@ -15,14 +15,6 @@ def open_settings(parent_frame):
     settings_app = SettingsMenuApp(parent_frame)  # Pass the parent frame as the root
     settings_app.main_frame.pack(fill="both", expand=True)
 
-def open_statistics(parent_frame):
-    ## Display the statistics screen
-    for widget in parent_frame.winfo_children():  # Clear previous contents of the frame
-        widget.destroy()
-
-    # Create and display the StatisticsApp in the parent frame
-    statistics_app = StatisticsClass(parent_frame)  # Pass the parent frame as the root
-    statistics_app.main_frame.pack(fill="both", expand=True)
     
 
 class HomeScreen:
@@ -35,7 +27,6 @@ class HomeScreen:
         self.schedule_frame = tk.Frame(root, bg="#f2f2f2")
         self.nutrition_frame = tk.Frame(root, bg="#f2f2f2")
         self.settings_frame = None
-        self.statistics_frame = None
 
         self.create_menu()
         self.create_title()
@@ -47,8 +38,8 @@ class HomeScreen:
         menu_bar.add_command(label="Εισαγωγή Μαθημάτων", command=self.open_courses)
         menu_bar.add_command(label="Τι έχει το πρόγραμμα?", command=self.show_schedule)
         menu_bar.add_command(label="Τι θα φάμε σήμερα?", command=self.show_nutrition)
+        menu_bar.add_command(label="Εργασίες", command=self.open_tasks)  # Use Greek for consistency
         menu_bar.add_command(label="Ειδοποιήσεις & Streaks", command=self.open_notifications)
-        menu_bar.add_command(label="Στατιστικά", command=self.show_statistics)
         menu_bar.add_command(label="Ρυθμίσεις", command=self.show_settings)  # Σύνδεση με τη ρύθμιση
 
     def create_title(self):
@@ -56,7 +47,13 @@ class HomeScreen:
         label.pack(pady=20)
 
     def open_courses(self):
-        messagebox.showinfo("Εισαγωγή Μαθημάτων", "Μεταφορά στην οθόνη εισαγωγής μαθημάτων.")
+        """Open the courses screen."""
+        self.hide_all_frames()
+        if not hasattr(self, "courses_frame"):
+            self.courses_frame = tk.Frame(self.root, bg="#f2f2f2")
+        self.courses_frame.pack(fill=tk.BOTH, expand=True)
+        # Remove the local import that's causing issues
+        open_courses_screen(self.courses_frame, self)
 
     def open_notifications(self):
         messagebox.showinfo("Ειδοποιήσεις & Streaks", "Μεταφορά στην οθόνη ειδοποιήσεων.")
@@ -67,8 +64,10 @@ class HomeScreen:
         self.nutrition_frame.pack_forget()
         if self.settings_frame:
             self.settings_frame.pack_forget()
-        if self.statistics_frame:
-            self.statistics_frame.pack_forget()
+        if hasattr(self, "courses_frame"):
+            self.courses_frame.pack_forget()
+        if hasattr(self, "tasks_frame"):
+            self.tasks_frame.pack_forget()
 
     def show_nutrition(self):
         """Δείξε το παράθυρο διατροφής."""
@@ -94,19 +93,14 @@ class HomeScreen:
         # Use the new function to display settings
         open_settings(self.settings_frame)
         self.settings_frame.pack(fill=tk.BOTH, expand=True)
-    
-    def show_statistics(self):
-        ## Display the statistics screen
 
+    def open_tasks(self):
+        """Open the tasks screen with Pomodoro timer."""
         self.hide_all_frames()
-        if not self.statistics_frame:
-            self.statistics_frame = tk.Frame(self.root, bg='#ffffff')
-            self.statistics_frame.pack(fill=tk.BOTH, expand=True)
-
-        open_statistics(self.statistics_frame)
-        self.statistics_frame.pack(fill=tk.BOTH, expand=True)
-
-
+        if not hasattr(self, "tasks_frame"):
+            self.tasks_frame = tk.Frame(self.root, bg="#f2f2f2")
+        self.tasks_frame.pack(fill=tk.BOTH, expand=True)
+        open_task_screen(self.tasks_frame)
 
 if __name__ == "__main__":
     root = tk.Tk()
