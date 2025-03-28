@@ -30,8 +30,8 @@ class LoginScreen:
         signup_button = tk.Button(self.root, text="Sign Up", command=self.open_signup)
         signup_button.pack(pady=10)
 
+#Afta apla kanoun click ki anoigoun to homescreen tr
     def login(self):
-        # For now, just destroy the login window and open the main application
         self.root.destroy()
         main_app()
 

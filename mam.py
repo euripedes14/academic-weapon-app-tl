@@ -1,11 +1,14 @@
 import os
 import tkinter as tk
-import fitz  # PyMuPDF
+from tkinter import simpledialog, messagebox
 from PIL import Image, ImageTk
 import requests
 from io import BytesIO
-from tkinter import messagebox
-import gmplot
+import fitz  # PyMuPDF
+from geopy.geocoders import Nominatim
+import tkintermapview
+import json
+from map_search import fetch_nearby_food_places, generate_map, search_location
 
 def create_scrollable_frame(nutrition_frame):
     # Main frame to contain all other frames and widgets
@@ -103,7 +106,7 @@ def show_estia(parent_frame):
     pdf_label.pack(anchor=tk.CENTER, pady=10)
 
 def show_allou(parent_frame):
-    # Frame for the map
+    # Frame for the map and search bar
     map_frame = tk.Frame(parent_frame, bg="#f2f2f2", width=900, height=600, relief=tk.RIDGE, bd=2)
     map_frame.pack(pady=20)
     map_frame.pack_propagate(False)  # Prevent the frame from resizing to fit its content
@@ -111,15 +114,23 @@ def show_allou(parent_frame):
     map_header = tk.Label(map_frame, text="Αν θέλεις να φας κάτι άλλο μπορείς να το βρεις εδώ!", font=("Arial", 18, "bold"), bg="#f2f2f2", anchor=tk.CENTER)
     map_header.pack(pady=10, anchor=tk.CENTER)
 
-    # Load the map image
-    map_file_path = "map_to_be_replaced.png"
-    if os.path.exists(map_file_path):
-        map_image = Image.open(map_file_path)
-        map_photo = ImageTk.PhotoImage(map_image)
+    # Frame to contain the search bar and map
+    search_map_frame = tk.Frame(map_frame, bg="#f2f2f2")
+    search_map_frame.pack(fill="both", expand=True)
 
-        # Display the map in a label
-        map_label = tk.Label(map_frame, image=map_photo, bg="#f2f2f2", anchor=tk.CENTER)
-        map_label.image = map_photo  # Keep a reference to avoid garbage collection
-        map_label.pack(anchor=tk.CENTER, pady=10)
-    else:
-        tk.Label(map_frame, text="Map image not found.", font=("Arial", 14), bg="#f2f2f2", anchor=tk.CENTER).pack(anchor=tk.CENTER, pady=10)
+    # Search bar
+    search_frame = tk.Frame(search_map_frame, bg="#f2f2f2")
+    search_frame.pack(pady=10)
+    search_entry = tk.Entry(search_frame, width=50)
+    search_entry.pack(side=tk.LEFT, padx=10)
+    search_button = tk.Button(search_frame, text="Search", command=lambda: search_location(map_placeholder, search_entry.get(), search_entry.get()))
+    search_button.pack(side=tk.LEFT)
+
+    # Placeholder for the map
+    map_placeholder = tk.Frame(search_map_frame, bg="#f2f2f2", width=800, height=500, relief=tk.RIDGE, bd=2)
+    map_placeholder.pack(fill="both", expand=True)
+    map_placeholder.pack_propagate(False)  # Prevent the frame from resizing to fit its content
+
+    # Generate and display the map
+    location = "Patras, Greece"  # Default location
+    generate_map(map_placeholder, location)

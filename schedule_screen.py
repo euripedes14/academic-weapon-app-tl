@@ -2,9 +2,12 @@ import tkinter as tk
 from tkinter import simpledialog, messagebox, ttk
 from tkcalendar import Calendar
 import datetime
+import time
 
 events = []
 cal = None
+timer_running = False
+start_time = None
 
 def on_date_click(event):
     selected_date = cal.get_date()
@@ -30,12 +33,45 @@ def update_event_lists():
     for event in upcoming_events:
         upcoming_events_tree.insert("", "end", values=(event[0], event[1], event[2]))
 
+def start_timer():
+    global timer_running, start_time
+    if not timer_running:
+        start_time = time.time()
+        timer_running = True
+        update_timer()
+
+def stop_timer():
+    global timer_running
+    if timer_running:
+        timer_running = False
+
+def update_timer():
+    if timer_running:
+        elapsed_time = time.time() - start_time
+        timer_label.config(text=f"Elapsed Time: {int(elapsed_time)} seconds")
+        timer_label.after(1000, update_timer)
+
 def open_schedule(schedule_frame):
-    global cal, past_events_tree, upcoming_events_tree
+    global cal, past_events_tree, upcoming_events_tree, timer_label
 
     # Clear the frame
     for widget in schedule_frame.winfo_children():
         widget.destroy()
+
+    # Timer frame
+    timer_frame = tk.Frame(schedule_frame, bg="#f2f2f2", relief=tk.RIDGE, bd=2, width=200, height=200)
+    timer_frame.pack(pady=10, padx=10)
+    timer_frame.pack_propagate(False)  # Prevent the frame from resizing to fit its content
+
+    # Timer label and buttons
+    timer_label = tk.Label(timer_frame, text="Elapsed Time: 0 seconds", font=("Arial", 12))
+    timer_label.pack(pady=10)
+
+    start_button = tk.Button(timer_frame, text="Start Timer", command=start_timer)
+    start_button.pack(side=tk.LEFT, padx=10)
+
+    stop_button = tk.Button(timer_frame, text="Stop Timer", command=stop_timer)
+    stop_button.pack(side=tk.RIGHT, padx=10)
 
     # Δημιουργία frame για το ημερολόγιο
     calendar_frame = tk.Frame(schedule_frame)
