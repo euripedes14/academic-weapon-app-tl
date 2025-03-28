@@ -2,7 +2,6 @@ import tkinter as tk
 from tkinter import simpledialog, messagebox
 from tkcalendar import DateEntry
 
-
 class TaskScreen:
     def __init__(self, parent):
         self.parent = parent
@@ -69,7 +68,7 @@ class TaskScreen:
     def task_dialog(self, task_text='', deadline=None):
         dialog = tk.Toplevel(self.parent)
         dialog.title("Εισάγετε Εργασία")
-        dialog.geometry("500x300")
+        dialog.geometry("400x300")
         dialog.update_idletasks()
         width = dialog.winfo_width()
         height = dialog.winfo_height()
@@ -83,7 +82,26 @@ class TaskScreen:
         task_entry.pack(pady=5, padx=10, fill=tk.X)
         task_entry.insert(0, task_text)
 
+        tk.Label(dialog, text="Θέλετε να προσθέσετε προθεσμία;").pack(pady=5)
+        answer_frame = tk.Frame(dialog)
+        answer_frame.pack(pady=5)
+
+        deadline_var = tk.StringVar(value="no")
+
+        yes_rb = tk.Radiobutton(answer_frame, text="Ναι", variable=deadline_var, value="yes")
+        yes_rb.pack(side=tk.LEFT, padx=5)
+        no_rb = tk.Radiobutton(answer_frame, text="Όχι", variable=deadline_var, value="no")
+        no_rb.pack(side=tk.LEFT, padx=5)
+
         deadline_entry = DateEntry(dialog, width=12, background='darkblue', foreground='white', borderwidth=2)
+
+        def show_deadline_entry():
+            if deadline_var.get() == "yes":
+                deadline_entry.pack(pady=5)
+            else:
+                deadline_entry.pack_forget()
+
+        deadline_var.trace("w", lambda *args: show_deadline_entry())
 
         if deadline:
             tk.Label(dialog,
@@ -100,11 +118,6 @@ class TaskScreen:
             keep_rb = tk.Radiobutton(edit_frame, text="Διατήρηση", variable=edit_var, value="keep")
             keep_rb.pack(side=tk.LEFT, padx=5)
 
-            if deadline:
-                deadline_entry.set_date(deadline)
-            deadline_entry._top_cal.overrideredirect(False)  # To show the calendar dropdown
-            deadline_entry._top_cal.attributes('-topmost', True)
-
             def handle_existing_deadline():
                 if edit_var.get() == "edit":
                     deadline_entry.pack(pady=5)
@@ -115,30 +128,10 @@ class TaskScreen:
 
             edit_var.trace("w", lambda *args: handle_existing_deadline())
 
-        else:
-            tk.Label(dialog, text="Θέλετε να προσθέσετε προθεσμία;").pack(pady=5)
-            answer_frame = tk.Frame(dialog)
-            answer_frame.pack(pady=5)
-
-            deadline_var = tk.StringVar(value="no")
-
-            yes_rb = tk.Radiobutton(answer_frame, text="Ναι", variable=deadline_var, value="yes")
-            yes_rb.pack(side=tk.LEFT, padx=5)
-            no_rb = tk.Radiobutton(answer_frame, text="Όχι", variable=deadline_var, value="no")
-            no_rb.pack(side=tk.LEFT, padx=5)
-
-            def show_deadline_entry():
-                if deadline_var.get() == "yes":
-                    deadline_entry.pack(pady=5)
-                else:
-                    deadline_entry.pack_forget()
-
-            deadline_var.trace("w", lambda *args: show_deadline_entry())
-
         def on_ok():
             dialog.task_info = {
                 'text': task_entry.get(),
-                'deadline': deadline_entry.get_date() if (not deadline and deadline_var.get() == "yes") or (
+                'deadline': deadline_entry.get_date() if deadline_var.get() == "yes" or (
                             deadline and edit_var.get() == "edit") else None
             }
             dialog.destroy()
@@ -241,9 +234,8 @@ class PomodoroTimer:
     def __init__(self, parent):
         self.parent = parent
         self.is_running = False
-        self.work_seconds = 25 * 60  # 25 minutes
-        self.break_seconds = 5 * 60  # 5 minutes
-        self.seconds_left = self.work_seconds
+        self.total_seconds = 0
+        self.seconds_left = 0
         self.pomodoro_count = 0
         self.is_break = False
 
@@ -255,7 +247,7 @@ class PomodoroTimer:
         self.frame.pack(fill=tk.BOTH, expand=True)
 
         # Title
-        title_label = tk.Label(self.frame, text="Χρονόμετρο Pomodoro", font=("Arial", 18, "bold"), bg="#f2f2f2")
+        title_label = tk.Label(self.frame, text="Χρονόμετρο", font=("Arial", 18, "bold"), bg="#f2f2f2")
         title_label.pack(pady=20)
 
         # Timer display frame
@@ -263,15 +255,15 @@ class PomodoroTimer:
         timer_frame.pack(pady=20)
 
         # Mode label (Work/Break)
-        self.mode_label = tk.Label(timer_frame, text="Ώρα Εργασίας", font=("Arial", 14), bg="#f2f2f2", fg="#d64545")
+        self.mode_label = tk.Label(timer_frame, text="", font=("Arial", 14), bg="#f2f2f2", fg="#d64545")
         self.mode_label.pack()
 
         # Timer display
-        self.time_display = tk.Label(timer_frame, text="25:00", font=("Arial", 48), bg="#f2f2f2")
+        self.time_display = tk.Label(timer_frame, text="00:00:00", font=("Arial", 48), bg="#f2f2f2")
         self.time_display.pack(pady=10)
 
         # Pomodoro count
-        self.count_label = tk.Label(timer_frame, text="Ολοκληρώθηκαν: 0", font=("Arial", 12), bg="#f2f2f2")
+        self.count_label = tk.Label(timer_frame, text="", font=("Arial", 12), bg="#f2f2f2")
         self.count_label.pack()
 
         # Control buttons frame
@@ -279,8 +271,8 @@ class PomodoroTimer:
         button_frame.pack(pady=20)
 
         # Start button
-        self.start_button = tk.Button(button_frame, text="Έναρξη", font=("Arial", 12),
-                                      width=10, command=self.toggle_timer)
+        self.start_button = tk.Button(button_frame, text="Ρύθμιση", font=("Arial", 12),
+                                      width=10, command=self.start_timer)
         self.start_button.pack(side=tk.LEFT, padx=5)
 
         # Reset button
@@ -288,45 +280,81 @@ class PomodoroTimer:
                                  width=10, command=self.reset_timer)
         reset_button.pack(side=tk.LEFT, padx=5)
 
-    def toggle_timer(self):
-        self.is_running = not self.is_running
-        if self.is_running:
-            self.start_button.config(text="Παύση")
+    def start_timer(self):
+        self.get_timer_settings()
+        if self.total_seconds > 0:
+            self.is_running = True
             self.update_timer()
-        else:
-            self.start_button.config(text="Συνέχεια")
+
+    def get_timer_settings(self):
+        dialog = tk.Toplevel(self.parent)
+        dialog.title("Ρυθμίσεις Χρονομέτρου")
+        dialog.geometry("300x200")
+        dialog.resizable(False, False)
+
+        tk.Label(dialog, text="Δώστε χρόνο σε ώρες:").pack(pady=5)
+        hours_entry = tk.Entry(dialog)
+        hours_entry.pack(pady=5, padx=10, fill=tk.X)
+
+        tk.Label(dialog, text="Επιλέξτε λειτουργία:").pack(pady=5)
+        mode_var = tk.StringVar(value="normal")
+
+        normal_rb = tk.Radiobutton(dialog, text="Κανονική αντίστροφη μέτρηση", variable=mode_var, value="normal")
+        normal_rb.pack(pady=5)
+        pomodoro_rb = tk.Radiobutton(dialog, text="Pomodoro", variable=mode_var, value="pomodoro")
+        pomodoro_rb.pack(pady=5)
+
+        def on_ok():
+            try:
+                hours = float(hours_entry.get())
+                if hours <= 0:
+                    raise ValueError("Ο χρόνος πρέπει να είναι θετικός αριθμός.")
+                self.total_seconds = int(hours * 3600)
+                self.seconds_left = self.total_seconds
+                self.mode = mode_var.get()
+                dialog.destroy()
+            except ValueError as e:
+                messagebox.showerror("Σφάλμα", str(e))
+
+        tk.Button(dialog, text="OK", command=on_ok).pack(pady=10)
+        self.parent.wait_window(dialog)
 
     def update_timer(self):
         if not self.is_running:
             return
 
         if self.seconds_left <= 0:
-            # Timer finished
-            if self.is_break:
-                # Break finished, start work
-                self.is_break = False
-                self.seconds_left = self.work_seconds
-                self.mode_label.config(text="Ώρα Εργασίας", fg="#d64545")
+            if self.mode == "pomodoro":
+                if self.is_break:
+                    self.is_break = False
+                    self.seconds_left = min(25 * 60, self.total_seconds - self.pomodoro_count * 30 * 60)
+                    self.mode_label.config(text="Ώρα Εργασίας", fg="#d64545")
+                else:
+                    self.is_break = True
+                    self.pomodoro_count += 1
+                    self.count_label.config(text=f"Ολοκληρώθηκαν: {self.pomodoro_count}")
+                    self.seconds_left = 5 * 60
+                    self.mode_label.config(text="Ώρα Διαλείμματος", fg="#45d645")
             else:
-                # Work finished, start break
-                self.is_break = True
-                self.pomodoro_count += 1
-                self.count_label.config(text=f"Ολοκληρώθηκαν: {self.pomodoro_count}")
-                self.seconds_left = self.break_seconds
-                self.mode_label.config(text="Ώρα Διαλείμματος", fg="#45d645")
+                messagebox.showinfo("Χρονόμετρο", "Ο χρόνος τελείωσε!")
+                self.reset_timer()
+                return
 
         minutes, seconds = divmod(self.seconds_left, 60)
-        self.time_display.config(text=f"{minutes:02d}:{seconds:02d}")
+        hours, minutes = divmod(minutes, 60)
+        self.time_display.config(text=f"{hours:02d}:{minutes:02d}:{seconds:02d}")
         self.seconds_left -= 1
         self.parent.after(1000, self.update_timer)
 
     def reset_timer(self):
         self.is_running = False
-        self.start_button.config(text="Έναρξη")
+        self.start_button.config(text="Ρύθμιση")
+        self.seconds_left = self.total_seconds
+        self.mode_label.config(text="")
+        self.time_display.config(text="00:00:00")
+        self.count_label.config(text="")
+        self.pomodoro_count = 0
         self.is_break = False
-        self.seconds_left = self.work_seconds
-        self.mode_label.config(text="Ώρα Εργασίας", fg="#d64545")
-        self.time_display.config(text="25:00")
 
 
 def open_task_screen(parent_frame):
