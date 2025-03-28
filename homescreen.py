@@ -5,6 +5,7 @@ from mam import open_nutrition                # Import the open_nutrition functi
 from settings import SettingsMenuApp
 from courses import open_courses_screen
 from task import open_task_screen  # Import the new task screen function
+from statistics_screen import StatisticsClass
 
 def open_settings(parent_frame):
     """Display the settings screen in the given parent frame."""
@@ -15,6 +16,14 @@ def open_settings(parent_frame):
     settings_app = SettingsMenuApp(parent_frame)  # Pass the parent frame as the root
     settings_app.main_frame.pack(fill="both", expand=True)
 
+def open_statistics(parent_frame):
+    ## Display the statistics screen
+    for widget in parent_frame.winfo_children():  # Clear previous contents of the frame
+        widget.destroy()
+
+    # Create and display the StatisticsApp in the parent frame
+    statistics_app = StatisticsClass(parent_frame)  # Pass the parent frame as the root
+    statistics_app.main_frame.pack(fill="both", expand=True)
     
 
 class HomeScreen:
@@ -27,6 +36,7 @@ class HomeScreen:
         self.schedule_frame = tk.Frame(root, bg="#f2f2f2")
         self.nutrition_frame = tk.Frame(root, bg="#f2f2f2")
         self.settings_frame = None
+        self.statistics_frame = None
 
         self.create_menu()
         self.create_title()
@@ -40,11 +50,14 @@ class HomeScreen:
         menu_bar.add_command(label="Τι θα φάμε σήμερα?", command=self.show_nutrition)
         menu_bar.add_command(label="Εργασίες", command=self.open_tasks)  # Use Greek for consistency
         menu_bar.add_command(label="Ειδοποιήσεις & Streaks", command=self.open_notifications)
+        menu_bar.add_command(label="Στατιστικά", command=self.show_statistics)
         menu_bar.add_command(label="Ρυθμίσεις", command=self.show_settings)  # Σύνδεση με τη ρύθμιση
 
     def create_title(self):
         label = tk.Label(self.root, text="Καλώς ήρθατε στο LockIN", font=("Arial", 14))
         label.pack(pady=20)
+        if self.statistics_frame:
+            self.statistics_frame.pack_forget()
 
     def open_courses(self):
         """Open the courses screen."""
@@ -93,6 +106,17 @@ class HomeScreen:
         # Use the new function to display settings
         open_settings(self.settings_frame)
         self.settings_frame.pack(fill=tk.BOTH, expand=True)
+
+    def show_statistics(self):
+        ## Display the statistics screen
+
+        self.hide_all_frames()
+        if not self.statistics_frame:
+            self.statistics_frame = tk.Frame(self.root, bg='#ffffff')
+            self.statistics_frame.pack(fill=tk.BOTH, expand=True)
+
+        open_statistics(self.statistics_frame)
+        self.statistics_frame.pack(fill=tk.BOTH, expand=True)
 
     def open_tasks(self):
         """Open the tasks screen with Pomodoro timer."""
