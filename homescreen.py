@@ -37,6 +37,9 @@ class HomeScreen:
         self.nutrition_frame = tk.Frame(root, bg="#f2f2f2")
         self.settings_frame = None
         self.statistics_frame = None
+        # Initialize other frames to avoid AttributeError
+        self.courses_frame = None
+        self.tasks_frame = None
 
         self.create_menu()
         self.create_title()
@@ -62,7 +65,7 @@ class HomeScreen:
     def open_courses(self):
         """Open the courses screen."""
         self.hide_all_frames()
-        if not hasattr(self, "courses_frame"):
+        if self.courses_frame is None:
             self.courses_frame = tk.Frame(self.root, bg="#f2f2f2")
         self.courses_frame.pack(fill=tk.BOTH, expand=True)
         # Remove the local import that's causing issues
@@ -73,12 +76,18 @@ class HomeScreen:
 
     def hide_all_frames(self):
         """Απόκρυψη όλων των άλλων frames όταν επιλέγεται μία λειτουργία."""
-        self.schedule_frame.pack_forget()
-        self.nutrition_frame.pack_forget()
-        self.settings_frame.pack_forget()
-        self.courses_frame.pack_forget()
-        self.tasks_frame.pack_forget()
-        self.statistics_frame.pack_forget()
+        if hasattr(self, "schedule_frame") and self.schedule_frame:
+            self.schedule_frame.pack_forget()
+        if hasattr(self, "nutrition_frame") and self.nutrition_frame:
+            self.nutrition_frame.pack_forget()
+        if hasattr(self, "settings_frame") and self.settings_frame:
+            self.settings_frame.pack_forget()
+        if hasattr(self, "courses_frame") and self.courses_frame:
+            self.courses_frame.pack_forget()
+        if hasattr(self, "tasks_frame") and self.tasks_frame:
+            self.tasks_frame.pack_forget()
+        if hasattr(self, "statistics_frame") and self.statistics_frame:
+            self.statistics_frame.pack_forget()
 
     def show_nutrition(self):
         """Δείξε το παράθυρο διατροφής."""
@@ -119,7 +128,7 @@ class HomeScreen:
     def open_tasks(self):
         """Open the tasks screen with Pomodoro timer."""
         self.hide_all_frames()
-        if not hasattr(self, "tasks_frame"):
+        if self.tasks_frame is None:
             self.tasks_frame = tk.Frame(self.root, bg="#f2f2f2")
         self.tasks_frame.pack(fill=tk.BOTH, expand=True)
         open_task_screen(self.tasks_frame)
