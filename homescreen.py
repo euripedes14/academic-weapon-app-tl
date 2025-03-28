@@ -73,18 +73,12 @@ class HomeScreen:
 
     def hide_all_frames(self):
         """Απόκρυψη όλων των άλλων frames όταν επιλέγεται μία λειτουργία."""
-        if self.schedule_frame:
-            self.schedule_frame.pack_forget()
-        if self.nutrition_frame:
-            self.nutrition_frame.pack_forget()
-        if self.settings_frame:
-            self.settings_frame.pack_forget()
-        if self.courses_frame:
-            self.courses_frame.pack_forget()
-        if self.tasks_frame:
-            self.tasks_frame.pack_forget()
-        if self.statistics_frame:
-            self.statistics_frame.pack_forget()
+        self.schedule_frame.pack_forget()
+        self.nutrition_frame.pack_forget()
+        self.settings_frame.pack_forget()
+        self.courses_frame.pack_forget()
+        self.tasks_frame.pack_forget()
+        self.statistics_frame.pack_forget()
 
     def show_nutrition(self):
         """Δείξε το παράθυρο διατροφής."""
