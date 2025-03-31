@@ -6,6 +6,7 @@ from settings import SettingsMenuApp
 from courses import open_courses_screen
 from task import open_task_screen  # Import the new task screen function
 from statistics_screen import StatisticsClass
+from spendings import ExpenseTrackerApp  # Import the ExpenseTrackerApp class
 
 def open_settings(parent_frame):
     """Display the settings screen in the given parent frame."""
@@ -40,6 +41,7 @@ class HomeScreen:
         # Initialize other frames to avoid AttributeError
         self.courses_frame = None
         self.tasks_frame = None
+        self.spendings_frame = None  # Initialize spendings frame
 
         self.create_menu()
         self.create_title()
@@ -54,7 +56,9 @@ class HomeScreen:
         menu_bar.add_command(label="Εργασίες", command=self.open_tasks)  # Use Greek for consistency
         menu_bar.add_command(label="Ειδοποιήσεις & Streaks", command=self.open_notifications)
         menu_bar.add_command(label="Στατιστικά", command=self.show_statistics)
+        menu_bar.add_command(label="Διαχείρηση Εξόδων", command=self.open_spendings)  # Add Spendings menu option
         menu_bar.add_command(label="Ρυθμίσεις", command=self.show_settings)  # Σύνδεση με τη ρύθμιση
+        
 
     def create_title(self):
         label = tk.Label(self.root, text="Καλώς ήρθατε στο LockIN", font=("Arial", 14))
@@ -88,6 +92,8 @@ class HomeScreen:
             self.tasks_frame.pack_forget()
         if hasattr(self, "statistics_frame") and self.statistics_frame:
             self.statistics_frame.pack_forget()
+        if hasattr(self, "spendings_frame") and self.spendings_frame:
+            self.spendings_frame.pack_forget()
 
     def show_nutrition(self):
         """Δείξε το παράθυρο διατροφής."""
@@ -132,6 +138,16 @@ class HomeScreen:
             self.tasks_frame = tk.Frame(self.root, bg="#f2f2f2")
         self.tasks_frame.pack(fill=tk.BOTH, expand=True)
         open_task_screen(self.tasks_frame)
+
+    def open_spendings(self):
+        """Open the spendings screen."""
+        self.hide_all_frames()
+        if self.spendings_frame is None:
+            self.spendings_frame = tk.Frame(self.root, bg="#f2f2f2")
+            self.spendings_frame.pack(fill=tk.BOTH, expand=True)
+            ExpenseTrackerApp(self.spendings_frame)  # Initialize ExpenseTrackerApp in the frame
+        else:
+            self.spendings_frame.pack(fill=tk.BOTH, expand=True)
 
 if __name__ == "__main__":
     root = tk.Tk()
