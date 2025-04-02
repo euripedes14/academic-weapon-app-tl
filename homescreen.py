@@ -4,6 +4,7 @@ from schedule_screen import open_schedule     # Import the open_schedule functio
 from mam import open_nutrition                # Import the open_nutrition function
 from settings import SettingsMenuApp
 from courses import open_courses_screen
+from homescreenscreen import open_homescreenscreen
 from task import open_task_screen  # Import the new task screen function
 from statistics_screen import StatisticsClass
 from spendings import ExpenseTrackerApp  # Import the ExpenseTrackerApp class
@@ -34,6 +35,7 @@ class HomeScreen:
         self.root.state("zoomed")
 
         # Frames για διαφορετικές λειτουργίες
+        self.homescreen_frame = None
         self.schedule_frame = tk.Frame(root, bg="#f2f2f2")
         self.nutrition_frame = tk.Frame(root, bg="#f2f2f2")
         self.settings_frame = None
@@ -50,6 +52,7 @@ class HomeScreen:
         menu_bar = tk.Menu(self.root)
         self.root.config(menu=menu_bar)
 
+        menu_bar.add_command(label="Αρχική Οθόνη", command=self.open_homescreen)
         menu_bar.add_command(label="Εισαγωγή Μαθημάτων", command=self.open_courses)
         menu_bar.add_command(label="Τι έχει το πρόγραμμα?", command=self.show_schedule)
         menu_bar.add_command(label="Τι θα φάμε σήμερα?", command=self.show_nutrition)
@@ -65,6 +68,15 @@ class HomeScreen:
         label.pack(pady=20)
         if self.statistics_frame:
             self.statistics_frame.pack_forget()
+
+    def open_homescreen(self):
+        ## homescreen
+        self.hide_all_frames()
+        if self.homescreen_frame is None:
+            self.homescreen_frame = tk.Frame(self.root, bg="#f2f2f2")
+        self.homescreen_frame.pack(fill=tk.BOTH, expand=True)
+        # Remove the local import that's causing issues
+        open_homescreenscreen(self.homescreen_frame, self)
 
     def open_courses(self):
         """Open the courses screen."""
@@ -152,4 +164,8 @@ class HomeScreen:
 if __name__ == "__main__":
     root = tk.Tk()
     app = HomeScreen(root)
+    app.open_homescreen()
+
+    # this should always be last
     root.mainloop()
+
