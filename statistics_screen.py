@@ -131,9 +131,24 @@ class StatisticsClass:
         hours_label = ctk.CTkLabel(self.content_frame,
                                    text = "Συνολικές Ώρες Μελέτης: " + str(total_study_hours),
                                    text_color = "#000000",
-                                   font=('Arial', 20))
+                                   font=('Arial', 30))
         
         hours_label.pack(anchor = "w", pady = 5)
+
+        indiv_label = ctk.CTkLabel(self.content_frame,
+                                   text = "\nΞεχωριστά ώρες μελέτης ανά μάθημα: ",
+                                   text_color = "#000000",
+                                   font=('Arial', 25))
+        
+        indiv_label.pack(anchor = "w", pady = 5)
+
+        for subject in subject_array:
+            indiv_subject_hours = ctk.CTkLabel(self.content_frame,
+                                               text = str(subject.name) + ": " + str(subject.hours),
+                                               text_color = "#000000",
+                                               font=('Arial', 20))
+            
+            indiv_subject_hours.pack(anchor = "w", pady = 5)
 
     def clear_content_frame(self):
         for widget in self.content_frame.winfo_children():
