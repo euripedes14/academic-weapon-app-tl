@@ -92,6 +92,8 @@ class HomeScreen:
 
     def hide_all_frames(self):
         """Απόκρυψη όλων των άλλων frames όταν επιλέγεται μία λειτουργία."""
+        if hasattr(self, "homescreen_frame") and self.homescreen_frame:
+            self.homescreen_frame.pack_forget()
         if hasattr(self, "schedule_frame") and self.schedule_frame:
             self.schedule_frame.pack_forget()
         if hasattr(self, "nutrition_frame") and self.nutrition_frame:

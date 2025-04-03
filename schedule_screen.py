@@ -33,18 +33,6 @@ def update_event_lists():
     for event in upcoming_events:
         upcoming_events_tree.insert("", "end", values=(event[0], event[1], event[2]))
 
-def start_timer():
-    global timer_running, start_time
-    if not timer_running:
-        start_time = time.time()
-        timer_running = True
-        update_timer()
-
-def stop_timer():
-    global timer_running
-    if timer_running:
-        timer_running = False
-
 def update_timer():
     if timer_running:
         elapsed_time = time.time() - start_time
@@ -52,26 +40,11 @@ def update_timer():
         timer_label.after(1000, update_timer)
 
 def open_schedule(schedule_frame):
-    global cal, past_events_tree, upcoming_events_tree, timer_label
+    global cal, past_events_tree, upcoming_events_tree
 
     # Clear the frame
     for widget in schedule_frame.winfo_children():
         widget.destroy()
-
-    # Timer frame
-    timer_frame = tk.Frame(schedule_frame, bg="#f2f2f2", relief=tk.RIDGE, bd=2, width=200, height=200)
-    timer_frame.pack(pady=10, padx=10)
-    timer_frame.pack_propagate(False)  # Prevent the frame from resizing to fit its content
-
-    # Timer label and buttons
-    timer_label = tk.Label(timer_frame, text="Elapsed Time: 0 seconds", font=("Arial", 12))
-    timer_label.pack(pady=10)
-
-    start_button = tk.Button(timer_frame, text="Start Timer", command=start_timer)
-    start_button.pack(side=tk.LEFT, padx=10)
-
-    stop_button = tk.Button(timer_frame, text="Stop Timer", command=stop_timer)
-    stop_button.pack(side=tk.RIGHT, padx=10)
 
     # Δημιουργία frame για το ημερολόγιο
     calendar_frame = tk.Frame(schedule_frame)
@@ -88,7 +61,7 @@ def open_schedule(schedule_frame):
     tk.Label(upcoming_events_frame, text="TO DO", font=("Arial", 12)).pack(anchor='w')
 
     # Προσθήκη ημερολογίου
-    cal = Calendar(calendar_frame, selectmode='day', year=datetime.datetime.now().year, 
+    cal = Calendar(calendar_frame, selectmode='day', year=datetime.datetime.now().year,
                    month=datetime.datetime.now().month, day=datetime.datetime.now().day)
     cal.pack(fill=tk.BOTH, expand=True)
     cal.bind("<<CalendarSelected>>", on_date_click)
