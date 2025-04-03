@@ -108,6 +108,8 @@ class HomeScreen:
             self.statistics_frame.pack_forget()
         if hasattr(self, "spendings_frame") and self.spendings_frame:
             self.spendings_frame.pack_forget()
+        if hasattr(self, "homescreen_frame") and self.homescreen_frame:
+            self.homescreen_frame.pack_forget()
 
     def show_nutrition(self):
         """Δείξε το παράθυρο διατροφής."""
