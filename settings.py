@@ -172,7 +172,7 @@ class SettingsMenuApp:
 
         description_label = ctk.CTkLabel(
             self.content_frame,
-            text="Αυτή είναι μια εφαρμογή μενού ρυθμίσεων.\nΈκδοση: 1.0.0\nΠρογραμματιστές: Η ομάδα σας",
+            text="LockIN: Σύμμαχος των Φοιτητών.\nΈκδοση 0.1\nΠρογραμματιστές: Η ομάδα σας",
             text_color="#555555"
         )
         description_label.pack(pady=5)
