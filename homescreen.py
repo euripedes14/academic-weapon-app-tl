@@ -57,7 +57,6 @@ class HomeScreen:
         menu_bar.add_command(label="Τι έχει το πρόγραμμα?", command=self.show_schedule)
         menu_bar.add_command(label="Τι θα φάμε σήμερα?", command=self.show_nutrition)
         menu_bar.add_command(label="Εργασίες", command=self.open_tasks)  # Use Greek for consistency
-        menu_bar.add_command(label="Ειδοποιήσεις & Streaks", command=self.open_notifications)
         menu_bar.add_command(label="Στατιστικά", command=self.show_statistics)
         menu_bar.add_command(label="Διαχείριση Εξόδων", command=self.open_spendings)  # Add Spendings menu option
         menu_bar.add_command(label="Ρυθμίσεις", command=self.show_settings)  # Σύνδεση με τη ρύθμιση
