@@ -5,10 +5,9 @@ from PIL import Image, ImageTk
 import requests
 from io import BytesIO
 import fitz  # PyMuPDF
-from geopy.geocoders import Nominatim
-import tkintermapview
-import json
-from map_search import fetch_nearby_food_places, generate_map, search_location
+from map_search import MapSearch  # Import the MapSearch class
+import threading  # Import threading for multithreading
+
 
 def create_scrollable_frame(nutrition_frame):
     # Main frame to contain all other frames and widgets
@@ -35,9 +34,10 @@ def create_scrollable_frame(nutrition_frame):
     scrollbar.pack(side="right", fill="y")
 
     # Enable mouse scrolling
-    canvas.bind_all("<MouseWheel>", lambda event: canvas.yview_scroll(int(-1*(event.delta/120)), "units"))
+    canvas.bind_all("<MouseWheel>", lambda event: canvas.yview_scroll(int(-1 * (event.delta / 120)), "units"))
 
     return canvas, scrollable_frame
+
 
 def open_nutrition(nutrition_frame):
     # Clear the frame
@@ -67,17 +67,19 @@ def open_nutrition(nutrition_frame):
     # Create sections for estia and allou
     estia_section = tk.Frame(scrollable_frame, bg="#f2f2f2")
     estia_section.pack(fill=tk.BOTH, expand=True, pady=20)
-    show_estia(estia_section)
+    threading.Thread(target=show_estia, args=(estia_section,)).start()  # Load PDF in a separate thread
 
     allou_section = tk.Frame(scrollable_frame, bg="#f2f2f2")
     allou_section.pack(fill=tk.BOTH, expand=True, pady=20)
-    show_allou(allou_section)
+    threading.Thread(target=show_allou, args=(allou_section,)).start()  # Load map in a separate thread
+
 
 def scroll_to_section(canvas, scrollable_frame, section):
     if section == "estia":
         canvas.yview_moveto(scrollable_frame.winfo_children()[1].winfo_y() / scrollable_frame.winfo_height())
     elif section == "allou":
         canvas.yview_moveto(scrollable_frame.winfo_children()[2].winfo_y() / scrollable_frame.winfo_height())
+
 
 def show_estia(parent_frame):
     # Create a square frame for the PDF display
@@ -102,8 +104,9 @@ def show_estia(parent_frame):
     img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
     img = ImageTk.PhotoImage(img)
     pdf_label = tk.Label(square_frame, image=img, bg="#f2f2f2", anchor=tk.CENTER)
-    pdf_label.image = img  # Keep a reference to avoid garbage collection 
+    pdf_label.image = img  # Keep a reference to avoid garbage collection
     pdf_label.pack(anchor=tk.CENTER, pady=10)
+
 
 def show_allou(parent_frame):
     # Frame for the map and search bar
@@ -114,23 +117,16 @@ def show_allou(parent_frame):
     map_header = tk.Label(map_frame, text="Αν θέλεις να φας κάτι άλλο μπορείς να το βρεις εδώ!", font=("Arial", 18, "bold"), bg="#f2f2f2", anchor=tk.CENTER)
     map_header.pack(pady=10, anchor=tk.CENTER)
 
-    # Frame to contain the search bar and map
-    search_map_frame = tk.Frame(map_frame, bg="#f2f2f2")
-    search_map_frame.pack(fill="both", expand=True)
+    # Initialize the MapSearch class
+    map_search = MapSearch(map_frame)
 
     # Search bar
-    search_frame = tk.Frame(search_map_frame, bg="#f2f2f2")
+    search_frame = tk.Frame(map_frame, bg="#f2f2f2")
     search_frame.pack(pady=10)
     search_entry = tk.Entry(search_frame, width=50)
     search_entry.pack(side=tk.LEFT, padx=10)
-    search_button = tk.Button(search_frame, text="Search", command=lambda: search_location(map_placeholder, search_entry.get(), search_entry.get()))
+    search_button = tk.Button(search_frame, text="Search", command=lambda: map_search.search_location(search_entry.get()))
     search_button.pack(side=tk.LEFT)
 
-    # Placeholder for the map
-    map_placeholder = tk.Frame(search_map_frame, bg="#f2f2f2", width=800, height=500, relief=tk.RIDGE, bd=2)
-    map_placeholder.pack(fill="both", expand=True)
-    map_placeholder.pack_propagate(False)  # Prevent the frame from resizing to fit its content
-
-    # Generate and display the map
-    location = "Patras, Greece"  # Default location
-    generate_map(map_placeholder, location)
+    # Default location
+    map_search.search_location("Patras, Greece")

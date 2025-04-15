@@ -4,7 +4,7 @@ from schedule_screen import open_schedule     # Import the open_schedule functio
 from mam import open_nutrition                # Import the open_nutrition function
 from settings import SettingsMenuApp
 from courses import open_courses_screen
-from homescreenscreen import open_homescreenscreen
+from homescreenscreen import HomeScreenScreen  # Import the HomeScreenScreen class
 from task import open_task_screen  # Import the new task screen function
 from statistics_screen import StatisticsClass
 from spendings import ExpenseTrackerApp  # Import the ExpenseTrackerApp class
@@ -69,13 +69,15 @@ class HomeScreen:
             self.statistics_frame.pack_forget()
 
     def open_homescreen(self):
-        ## homescreen
+        """Open the home screen."""
         self.hide_all_frames()
         if self.homescreen_frame is None:
             self.homescreen_frame = tk.Frame(self.root, bg="#f2f2f2")
         self.homescreen_frame.pack(fill=tk.BOTH, expand=True)
-        # Remove the local import that's causing issues
-        open_homescreenscreen(self.homescreen_frame, self)
+
+        # Use the HomeScreenScreen class to display the home screen
+        homescreen_screen = HomeScreenScreen(self.homescreen_frame)
+        homescreen_screen.display()
 
     def open_courses(self):
         """Open the courses screen."""
