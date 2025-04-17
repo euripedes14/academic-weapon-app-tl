@@ -173,4 +173,12 @@ if __name__ == "__main__":
 
     # this should always be last
     root.mainloop()
+    
+# We made a Tkinter application that serves as a home screen for a student management system. It includes various functionalities such as course management, scheduling, nutrition tracking, task management, statistics, and settings. Each functionality is encapsulated in its own frame, and the main application allows users to navigate between these frames using a menu bar.
+# The application is designed to be user-friendly and visually appealing, with a consistent color scheme and layout. It also includes features for managing expenses and notifications, making it a comprehensive tool for students.    
+# The code is modular, allowing for easy updates and additions of new features in the future. Overall, it provides a solid foundation for a student management system with a focus on usability and functionality.
+# The application is built using the Tkinter library, which is a standard GUI toolkit for Python. It also utilizes customtkinter for enhanced UI components and aesthetics. The code is structured to allow for easy navigation and interaction, making it suitable for both novice and experienced users.
+# The use of classes and functions helps to keep the code organized and maintainable, allowing for future enhancements and modifications without significant restructuring. The application is designed to be responsive and adaptable to different screen sizes, ensuring a smooth user experience across various devices.
+# Overall our code serves as a solid foundation for a student management system, providing essential features and a user-friendly interface. It can be further expanded with additional functionalities and improvements based on user feedback and requirements.
+
 

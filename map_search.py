@@ -10,7 +10,7 @@ class MapSearch:
         self.map_widget.pack(fill="both", expand=True)
         self.geolocator = Nominatim(user_agent="myGeocoder")
         self.all_places = []  # Store all places fetched
-        self.default_places_shown = 50  # Limit for default places
+        self.default_places_shown = 10  # Limit for default places
 
         # Bind zoom event to dynamically load more places
         self.map_widget.bind("<ButtonRelease-1>", self.on_map_zoom)
@@ -57,7 +57,7 @@ class MapSearch:
     def on_map_zoom(self, event):
         """Load more places as the user zooms into the map."""
         zoom_level = self.map_widget.zoom
-        if zoom_level > 13:  # Adjust the zoom level threshold as needed
+        if zoom_level > 20:  # Adjust the zoom level threshold as needed
             # Show all places if zoomed in enough
             self.show_places(self.all_places)
         else:

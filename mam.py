@@ -130,3 +130,4 @@ def show_allou(parent_frame):
 
     # Default location
     map_search.search_location("Patras, Greece")
+
