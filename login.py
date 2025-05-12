@@ -1,56 +1,55 @@
-import tkinter as tk
-from homescreen import HomeScreen
+from login_signup_basescreen import BaseScreen
+import customtkinter as ctk
 
-class LoginScreen:
+
+class LoginScreen(BaseScreen):
     def __init__(self, root):
-        self.root = root
-        self.root.title("Login")
-        self.root.geometry("300x250")
+        super().__init__(root, "Login")
+        self.title_label.configure(text="Welcome to LockIN")
+        self.add_buttons()
 
-        self.create_widgets()
-
-    def create_widgets(self):
-        # Username label and entry
-        username_label = tk.Label(self.root, text="Username")
-        username_label.pack(pady=5)
-        self.username_entry = tk.Entry(self.root)
-        self.username_entry.pack(pady=5)
-
-        # Password label and entry
-        password_label = tk.Label(self.root, text="Password")
-        password_label.pack(pady=5)
-        self.password_entry = tk.Entry(self.root, show="*")
-        self.password_entry.pack(pady=5)
-
+    def add_buttons(self):
         # Login button
-        login_button = tk.Button(self.root, text="Login", command=self.login)
-        login_button.pack(pady=10)
+        login_button = ctk.CTkButton(
+            self.main_frame,
+            text="Login",
+            width=150,
+            fg_color="#e0e0e0",  # Light grey
+            hover_color="#bdbdbd",  # Slightly darker grey
+            text_color="#000000",
+            command=self.login
+        )
+        login_button.grid(row=3, column=1, columnspan=2, pady=20)
 
         # Sign-up button
-        signup_button = tk.Button(self.root, text="Sign Up", command=self.open_signup)
-        signup_button.pack(pady=10)
+        signup_button = ctk.CTkButton(
+            self.main_frame,
+            text="Sign Up",
+            width=150,
+            fg_color="#e0e0e0",  # Light grey
+            hover_color="#bdbdbd",  # Slightly darker grey
+            text_color="#000000",
+            command=self.open_signup
+        )
+        signup_button.grid(row=4, column=1, columnspan=2, pady=10)
 
-#Afta apla kanoun click ki anoigoun to homescreen tr
     def login(self):
         self.root.destroy()
+        from navigation import main_app  # Import here to avoid circular import
         main_app()
 
     def open_signup(self):
+        from signup_screen import signup_app  # Import signup_app here to avoid circular import
         self.root.destroy()
         signup_app()
 
-def main_app():
-    root = tk.Tk()
-    app = HomeScreen(root)
-    root.mainloop()
 
-def signup_app():
-    from signup_screen import SignUpScreen  # Import here to avoid circular import
-    root = tk.Tk()
-    app = SignUpScreen(root)
+def login_app():
+    """Launch the Login screen."""
+    root = ctk.CTk()
+    app = LoginScreen(root)
     root.mainloop()
 
 if __name__ == "__main__":
-    root = tk.Tk()
-    app = LoginScreen(root)
-    root.mainloop()
+    login_app()
+

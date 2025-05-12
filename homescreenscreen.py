@@ -18,8 +18,9 @@ class HomeScreenScreen:
         for widget in self.parent_frame.winfo_children():
             widget.destroy()
 
-        container = tk.Frame(self.parent_frame, bg="#f2f2f2")
-        container.pack(fill=tk.BOTH, expand=True)
+        # Use CTkFrame and make it fill/expand
+        container = ctk.CTkFrame(self.parent_frame, fg_color="#ffffff")
+        container.pack(fill="both", expand=True, padx=0, pady=0)
 
         indiv_label = ctk.CTkLabel(
             container,
