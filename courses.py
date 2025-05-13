@@ -1,102 +1,90 @@
-import tkinter as tk
-from tkinter import messagebox, ttk
+import customtkinter as ctk
+from tkinter import messagebox
+import openpyxl
 
-# Course data will be stored in entries instead of a separate list
-course_entries = []
-row_count = 6  # Start with 6 rows initially
+def load_semesters_from_excel():
+    """Φορτώνει τα εξάμηνα και τα μαθήματα από το Excel."""
+    wb = openpyxl.load_workbook("c:\\Users\\yanni\\Documents\\MEGAsync\\CEID\\8th sem - Erasmus\\TL_project\\academic-weapon-app-tl\\ceid_courses.xlsx")
+    sheet = wb.active
+    data = {}
+    for row in sheet.iter_rows(min_row=2, values_only=True):
+        sem = row[3]  # Semester is in column D (index 3)
+        course_name = row[1]  # Course name is in column B (index 1)
+        if not sem or not course_name:
+            continue
+        if sem in data:
+            data[sem].append(course_name)
+        else:
+            data[sem] = [course_name]
+    return data
+
+# Sample semester/course data
+semesters_data = load_semesters_from_excel()
+
+# Global list to store selected courses (course name + BooleanVar)
+selected_courses = []
 
 def save_courses():
-    """Save the courses entered in the entry fields"""
-    saved_courses = []
-    for row in range(len(course_entries)):
-        course_name = course_entries[row][0].get().strip()
-        if course_name:  # Only save rows with a course name
-            professor = course_entries[row][1].get().strip()
-            code = course_entries[row][2].get().strip()
-            try:
-                ects = int(course_entries[row][3].get()) if course_entries[row][3].get() else 0
-            except ValueError:
-                messagebox.showerror("Σφάλμα", f"Τα ECTS στη γραμμή {row+1} πρέπει να είναι αριθμός!")
-                return
-            saved_courses.append((course_name, professor, code, ects))
-    
-    messagebox.showinfo("Αποθήκευση", f"Αποθηκεύτηκαν {len(saved_courses)} μαθήματα.")
-    return saved_courses
+    """Αποθηκεύει μόνο τα τσεκαρισμένα μαθήματα."""
+    chosen = [course for course, var in selected_courses if var.get()]
+    messagebox.showinfo("Αποθήκευση", f"Αποθηκεύτηκαν {len(chosen)} μαθήματα.\n\n{', '.join(chosen)}")
+    return chosen
 
-def add_row():
-    """Add a new row to the table"""
-    global row_count
-    row = row_count
-    row_entries = []
-    
-    for col, width in enumerate(col_widths):
-        entry = tk.Entry(table_frame, width=width)
-        entry.grid(row=row+1, column=col, padx=5, pady=5, sticky='we')
-        row_entries.append(entry)
-        
-    course_entries.append(row_entries)
-    row_count += 1
-    
-    # Scroll to the bottom to show the new row if many rows exist
-    table_frame.update_idletasks()
-    if parent_canvas:
-        parent_canvas.yview_moveto(1.0)
+def toggle_courses(sem, course_frame, toggle_button):
+    """Εμφάνιση/απόκρυψη λίστας μαθημάτων σε ένα εξάμηνο."""
+    if course_frame.winfo_ismapped():
+        course_frame.pack_forget()
+        toggle_button.configure(text=f"+ Semester {sem}")  # Use `configure` instead of `config`
+    else:
+        course_frame.pack(fill="x", padx=30)
+        toggle_button.configure(text=f"- Semester {sem}")  # Use `configure` instead of `config`
 
-def open_courses_screen(parent_frame, home_screen):
-    global course_entries, row_count, table_frame, col_widths, parent_canvas
-    
-    course_entries = []
-    row_count = 6  # Reset to initial 6 rows
-    parent_canvas = None
-    
+def open_courses_screen(parent_frame, app_root=None):
     for widget in parent_frame.winfo_children():
         widget.destroy()
 
-    container = tk.Frame(parent_frame, bg="#f2f2f2")
-    container.pack(fill=tk.BOTH, expand=True)
+    # Set light theme
+    ctk.set_appearance_mode("light")
 
-    # Title at the top
-    label = tk.Label(container, text="Εισαγωγή Μαθημάτων", font=("Arial", 14))
-    label.pack(pady=20)
+    container = ctk.CTkFrame(parent_frame, bg_color="#ffffff")  # Light background color
+    container.pack(fill="both", expand=True)
 
-    # Main content frame - centered horizontally
-    main_content = tk.Frame(container, bg="#f2f2f2")
-    main_content.pack(expand=True, fill=tk.BOTH)
-    
-    # Create a frame to hold both table and buttons, centered vertically
-    centered_content = tk.Frame(main_content, bg="#f2f2f2")
-    centered_content.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
-    
-    # Table frame with fixed width, placed at top of the centered content
-    table_container = tk.Frame(centered_content, bg="#f2f2f2")
-    table_container.pack(pady=(0, 10))
-    
-    # Headers
-    headers = ["Μάθημα", "Καθηγητής", "Κωδικός", "ECTS"]
-    col_widths = [30, 25, 12, 6]
-    
-    table_frame = tk.Frame(table_container, bg="#f2f2f2")
-    table_frame.pack()
-    
-    for col, header in enumerate(headers):
-        tk.Label(table_frame, text=header, font=("Arial", 10, "bold")).grid(
-            row=0, column=col, padx=5, pady=5, sticky='w')
-    
-    # Create 6 editable rows
-    for row in range(6):
-        row_entries = []
-        for col, width in enumerate(col_widths):
-            entry = tk.Entry(table_frame, width=width)
-            entry.grid(row=row+1, column=col, padx=5, pady=5, sticky='we')
-            row_entries.append(entry)
-        course_entries.append(row_entries)
+    # Title
+    title = ctk.CTkLabel(container, text="Εισαγωγή Μαθημάτων", font=("Arial", 16, "bold"), text_color="#000000")
+    title.pack(pady=20)
 
-    # Button frame, centered below the table
-    button_frame = tk.Frame(centered_content, bg="#f2f2f2")
-    button_frame.pack(pady=10)
-    
-    save_button = tk.Button(button_frame, text="Αποθήκευση", command=save_courses, width=15)
-    save_button.pack(side=tk.LEFT, padx=5)
-    
-    add_row_button = tk.Button(button_frame, text="Προσθήκη Γραμμής", command=add_row, width=15)
-    add_row_button.pack(side=tk.LEFT, padx=5)
+    # Main content frame
+    main_content = ctk.CTkFrame(container, bg_color="#ffffff")
+    main_content.pack(fill="both", expand=True)
+
+    # Semester list
+    semester_list_frame = ctk.CTkFrame(main_content, bg_color="#ffffff")
+    semester_list_frame.pack(fill="x", pady=10)
+
+    global selected_courses
+    selected_courses = []
+
+    for sem, courses in semesters_data.items():
+        sem_header = ctk.CTkFrame(semester_list_frame, bg_color="#ffffff")
+        sem_header.pack(fill="x", padx=10, pady=5)
+
+        toggle_button = ctk.CTkButton(
+            sem_header, text=f"+ Semester {sem}",  # Add "Semester" next to the number
+            command=None, fg_color="#e0e0e0", text_color="#000000", hover_color="#d6d6d6"
+        )
+        toggle_button.pack(fill="x")
+
+        course_frame = ctk.CTkFrame(sem_header, bg_color="#ffffff")
+
+        for course in courses:
+            var = ctk.BooleanVar()
+            cb = ctk.CTkCheckBox(course_frame, text=course, variable=var, bg_color="#ffffff")  # Removed `text_color`
+            cb.pack(anchor="w", padx=20)
+            selected_courses.append((course, var))
+
+        # Assign toggle behavior
+        toggle_button.configure(command=lambda s=sem, f=course_frame, b=toggle_button: toggle_courses(s, f, b))
+
+    # Save button
+    save_button = ctk.CTkButton(main_content, text="Αποθήκευση", command=save_courses, width=20, fg_color="#e0e0e0", text_color="#000000", hover_color="#d6d6d6")
+    save_button.pack(pady=20)

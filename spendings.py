@@ -23,16 +23,16 @@ class ExpenseTrackerApp:
         self.repeating_spendings = []  # Store repeating spendings
         self.supermarket_items = []  # Store supermarket items
 
-        # Create notebook (tabs)
+        # Create notebook (tabs) - removed summary tab
         self.notebook = ttk.Notebook(parent_frame)
         self.transactions_frame = tk.Frame(self.notebook, bg="#f2f2f2")
         self.overview_frame = tk.Frame(self.notebook, bg="#f2f2f2")
-        self.summary_frame = tk.Frame(self.notebook, bg="#f2f2f2")  # Add Summary tab
+        # Removed summary_frame
         self.future_repeating_frame = tk.Frame(self.notebook, bg="#f2f2f2")  # Add Future/Repeating tab
         
         self.notebook.add(self.transactions_frame, text="Transactions")
         self.notebook.add(self.overview_frame, text="Overview")
-        self.notebook.add(self.summary_frame, text="Summary")
+        # Removed summary tab addition
         self.notebook.add(self.future_repeating_frame, text="Future/Repeating")
         self.notebook.pack(expand=True, fill="both")
 
@@ -46,7 +46,7 @@ class ExpenseTrackerApp:
 
         self.create_transactions_tab()
         self.create_overview_tab()
-        self.create_summary_tab()
+        # Removed create_summary_tab() call
         self.create_future_repeating_tab()
         self.supermarket_table.bind("<Double-1>", self.toggle_supermarket_item)
 
@@ -115,28 +115,13 @@ class ExpenseTrackerApp:
 
                 self.amount_entry.delete(0, tk.END)
                 self.update_pie_chart()
-                self.update_summary_chart()  # Update the summary chart after adding a transaction
+                # Removed update_summary_chart() call
         except ValueError:
             messagebox.showerror("Invalid Date", "The date format is invalid. Please select a valid date.")
     
     def create_overview_tab(self):
-        # Add controls for selecting the time period
-        controls_frame = tk.Frame(self.overview_frame, bg="#f2f2f2")
-        controls_frame.pack(fill="x", pady=10)
-
-        tk.Label(controls_frame, text="Επιλογή Μήνα:", bg="#f2f2f2").pack(side="left", padx=5)
-        self.month_var = tk.IntVar(value=self.selected_month)
-        self.month_dropdown = ttk.Combobox(controls_frame, textvariable=self.month_var, values=list(range(1, 13)), state="readonly", width=5)
-        self.month_dropdown.pack(side="left", padx=5)
-
-        tk.Label(controls_frame, text="Επιλογή Έτους:", bg="#f2f2f2").pack(side="left", padx=5)
-        self.year_var = tk.IntVar(value=self.selected_year)
-        self.year_dropdown = ttk.Combobox(controls_frame, textvariable=self.year_var, values=list(range(2000, datetime.now().year + 1)), state="readonly", width=7)
-        self.year_dropdown.pack(side="left", padx=5)
-
-        filter_button = tk.Button(controls_frame, text="Φιλτράρισμα", command=self.update_pie_chart, bg="#5cb85c", fg="white")
-        filter_button.pack(side="left", padx=10)
-
+        # Remove filter controls and labels
+        # ...existing code...
         self.chart_frame = tk.Frame(self.overview_frame, bg="#f2f2f2")
         self.chart_frame.pack(expand=True, fill="both")
         self.update_pie_chart()
@@ -145,107 +130,63 @@ class ExpenseTrackerApp:
         """Update the pie chart to display spendings for the selected time period."""
         for widget in self.chart_frame.winfo_children():
             widget.destroy()
+        current_date = datetime.now()
 
-        selected_month = self.month_var.get()
-        selected_year = self.year_var.get()
-
-        # Filter transactions by the selected month and year
-        filtered_transactions = [
-            (category, amount) for category, amount, date in self.transactions
-            if datetime.strptime(date, "%Y-%m-%d").month == selected_month and datetime.strptime(date, "%Y-%m-%d").year == selected_year
+        # Filter last month transactions
+        filtered_month = [
+            (cat, amt) for cat, amt, d in self.transactions
+            if 0 <= (current_date - datetime.strptime(d, "%Y-%m-%d")).days <= 30
+        ]
+        # Filter last year transactions
+        filtered_year = [
+            (cat, amt) for cat, amt, d in self.transactions
+            if 0 <= (current_date - datetime.strptime(d, "%Y-%m-%d")).days <= 365
         ]
 
-        if not filtered_transactions:
-            tk.Label(self.chart_frame, text="Δεν υπάρχουν έξοδα για την επιλεγμένη περίοδο", font=("Arial", 14), bg="#f2f2f2").pack()
+        def get_category_totals(transactions):
+            cats = {}
+            for c, a in transactions:
+                cats[c] = cats.get(c, 0) + a
+            total = sum(cats.values())
+            significant = {}
+            small_sum = 0
+            for c, a in cats.items():
+                if total > 0 and (a / total) * 100 < 3.0:
+                    small_sum += a
+                else:
+                    significant[c] = a
+            if small_sum > 0:
+                significant["Λοιπά έξοδα"] = significant.get("Λοιπά έξοδα", 0) + small_sum
+            return significant
+
+        month_totals = get_category_totals(filtered_month)
+        year_totals = get_category_totals(filtered_year)
+
+        if not month_totals and not year_totals:
+            tk.Label(self.chart_frame, text="Δεν υπάρχουν έξοδα για τις επιλεγμένες περιόδους", 
+                     font=("Arial", 14), bg="#f2f2f2").pack()
             return
 
-        categories = {}
-        for category, amount in filtered_transactions:
-            categories[category] = categories.get(category, 0) + amount
-        
-        # Calculate total expenses for percentage calculation
-        total_expenses = sum(categories.values())
-        
-        # Group small expenses (less than 3% of total) into "Λοιπά έξοδα"
-        if len(categories) > 1:  # Only group if there's more than one category
-            small_expenses = {}
-            significant_expenses = {}
-            
-            for category, amount in categories.items():
-                if (amount / total_expenses) * 100 < 3.0:
-                    small_expenses[category] = amount
-                else:
-                    significant_expenses[category] = amount
-            
-            # Add "Λοιπά έξοδα" category if there are small expenses
-            if small_expenses:
-                significant_expenses["Λοιπά έξοδα"] = sum(small_expenses.values())
-                categories = significant_expenses
-        
-        # Prepare data for the pie chart
-        labels = list(categories.keys())
-        values = list(categories.values())
-        
-        # Create a colormap with enough colors
-        colors = plt.cm.tab20.colors[:len(categories)]
-        
-        fig, ax = plt.subplots(figsize=(4, 4))
-        ax.pie(values, labels=labels, autopct='%1.1f%%', colors=colors)
-        ax.set_title(f"Έξοδα {selected_month}/{selected_year}", fontsize=14)
-        
-        # Add legend if there are many categories
-        if len(categories) > 5:
-            ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), ncol=2, fontsize='small')
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 4))
+        fig.tight_layout(pad=3)
+
+        # Pie chart for last month
+        if month_totals:
+            labels_month = list(month_totals.keys())
+            values_month = list(month_totals.values())
+            ax1.pie(values_month, labels=labels_month, autopct='%1.1f%%', 
+                    colors=plt.cm.tab20.colors[:len(labels_month)])
+            ax1.set_title("Έξοδα Τελευταίου Μήνα")
+
+        # Pie chart for last year
+        if year_totals:
+            labels_year = list(year_totals.keys())
+            values_year = list(year_totals.values())
+            ax2.pie(values_year, labels=labels_year, autopct='%1.1f%%', 
+                    colors=plt.cm.tab20.colors[:len(labels_year)])
+            ax2.set_title("Έξοδα Τελευταίου Έτους")
 
         canvas = FigureCanvasTkAgg(fig, master=self.chart_frame)
-        canvas.get_tk_widget().pack()
-        canvas.draw()
-
-    def create_summary_tab(self):
-        """Create the summary tab to display a bar graph of spendings for the past 6 months."""
-        self.summary_chart_frame = tk.Frame(self.summary_frame, bg="#f2f2f2")
-        self.summary_chart_frame.pack(expand=True, fill="both")
-        self.update_summary_chart()
-
-    def update_summary_chart(self):
-        """Update the bar graph to show total spendings for the past 6 months."""
-        for widget in self.summary_chart_frame.winfo_children():
-            widget.destroy()
-
-        # Calculate the total spendings for the past 6 months
-        current_date = datetime.now()
-        monthly_totals = defaultdict(float)
-
-        for category, amount, date in self.transactions:
-            transaction_date = datetime.strptime(date, "%Y-%m-%d")
-            if 0 <= (current_date - transaction_date).days <= 180:  # Past 6 months
-                month_year = transaction_date.strftime("%b %Y")  # Format as "Month Year"
-                monthly_totals[month_year] += amount
-
-        # Ensure all 6 months are represented, even if no transactions exist for some months
-        for i in range(6):
-            month_date = (current_date.replace(day=1) - timedelta(days=i * 30)).replace(day=1)
-            month_year = month_date.strftime("%b %Y")
-            if month_year not in monthly_totals:
-                monthly_totals[month_year] = 0.0
-
-        # Sort by month-year
-        sorted_months = sorted(monthly_totals.keys(), key=lambda x: datetime.strptime(x, "%b %Y"))
-
-        if not sorted_months:
-            tk.Label(self.summary_chart_frame, text="Δεν υπάρχουν έξοδα για τους τελευταίους 6 μήνες", font=("Arial", 14), bg="#f2f2f2").pack()
-            return
-
-        # Create the bar graph
-        fig, ax = plt.subplots(figsize=(6, 4))
-        ax.bar(sorted_months, [monthly_totals[month] for month in sorted_months], color="#66b3ff")
-        ax.set_title("Συνολικά Έξοδα (Τελευταίοι 6 Μήνες)", fontsize=14)
-        ax.set_ylabel("Συνολικά Έξοδα (€)", fontsize=12)
-        ax.set_xlabel("Μήνας", fontsize=12)
-        ax.xaxis.set_major_locator(MaxNLocator(integer=True))
-        ax.tick_params(axis="x", rotation=45)
-
-        canvas = FigureCanvasTkAgg(fig, master=self.summary_chart_frame)
         canvas.get_tk_widget().pack()
         canvas.draw()
 

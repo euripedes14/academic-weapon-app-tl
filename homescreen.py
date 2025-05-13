@@ -77,7 +77,7 @@ class HomeScreen:
 
     def open_courses(self):
         self.clear_content()
-        open_courses_screen(self.content_frame, self)
+        open_courses_screen(self.content_frame)
 
     def show_nutrition(self):
         self.clear_content()
