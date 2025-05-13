@@ -1,10 +1,18 @@
 import customtkinter as ctk
 from tkinter import messagebox
 import openpyxl
+import os  # Import os for handling file paths
 
 def load_semesters_from_excel():
     """Φορτώνει τα εξάμηνα και τα μαθήματα από το Excel."""
-    wb = openpyxl.load_workbook("c:\\Users\\yanni\\Documents\\MEGAsync\\CEID\\8th sem - Erasmus\\TL_project\\academic-weapon-app-tl\\ceid_courses.xlsx")
+    # Get the directory of the current Python file
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+
+    # Build the path to the Excel file
+    excel_path = os.path.join(base_dir, "ceid_courses.xlsx")
+
+    # Load the workbook
+    wb = openpyxl.load_workbook(excel_path)
     sheet = wb.active
     data = {}
     for row in sheet.iter_rows(min_row=2, values_only=True):
