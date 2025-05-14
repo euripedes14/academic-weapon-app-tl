@@ -45,7 +45,7 @@ class HomeScreen:
         self.add_nav_button("Εισαγωγή Μαθημάτων", self.open_courses)
         self.add_nav_button("Τι έχει το πρόγραμμα;", self.show_schedule)
         self.add_nav_button("Τι θα φάμε σήμερα;", self.show_nutrition)
-        self.add_nav_button("Εργασίες", self.open_tasks)
+        self.add_nav_button("Μελέτη", self.open_tasks)
         self.add_nav_button("Στατιστικά", self.show_statistics)
         self.add_nav_button("Διαχείριση Εξόδων", self.open_spendings)
         self.add_nav_button("Ρυθμίσεις", self.show_settings)
