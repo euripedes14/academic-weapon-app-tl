@@ -1,5 +1,7 @@
 from login_signup_basescreen import BaseScreen
 import customtkinter as ctk
+from CTkMessagebox import CTkMessagebox
+from database import create_database, create_tables, check_user_credentials
 
 
 class LoginScreen(BaseScreen):
@@ -34,14 +36,24 @@ class LoginScreen(BaseScreen):
         signup_button.grid(row=4, column=1, columnspan=2, pady=10)
 
     def login(self):
-        self.root.destroy()
-        from navigation import main_app  # Import here to avoid circular import
-        main_app()
+        username = self.username_entry.get()
+        password = self.password_entry.get()
+        conn = create_database() # Ensure the database is created
+        create_tables(conn) # Ensure the tables are created
+        # Check user credentials
+        if check_user_credentials(conn, username, password):
+            self.root.destroy()
+            from navigation import main_app
+            main_app()
+        else:
+            # Show error message (using CTkMessageBox or a label)
+            CTkMessagebox(title="Login Failed", message="Invalid username or password.")
+        conn.close()
 
     def open_signup(self):
-        from signup_screen import signup_app  # Import signup_app here to avoid circular import
-        self.root.destroy()
-        signup_app()
+        self.main_frame.destroy()
+        from signup_screen import SignUpScreen
+        SignUpScreen(self.root)
 
 
 def login_app():
