@@ -1,7 +1,7 @@
 import customtkinter as ctk
 from subject_class import *
 
-subject_array = test_subject_array
+subject_array = chosen_subjects
 
 class StatisticsClass:
     def __init__(self, parent_frame):
@@ -21,7 +21,7 @@ class StatisticsClass:
 
         counter = 0
         for subject in subject_array:
-            self.add_category_button(subject.name, self.show_subject,  counter)
+            self.add_category_button(subject.course_name, self.show_subject,  counter)
             counter += 1
         
 
@@ -63,28 +63,47 @@ class StatisticsClass:
         # show subject name
 
         subject_name_label = ctk.CTkLabel(self.content_frame,
-                                      text = "Όνομα Μαθήματος: " + subject_array[array_id].name,
+                                      text = "Όνομα Μαθήματος: " + subject_array[array_id].course_name,
                                       text_color = "#000000",
                                       font=('Arial', 30))
         
 
         subject_name_label.pack(anchor = "w", pady = 5)
 
+        # show subject department
+        subject_department_label = ctk.CTkLabel(self.content_frame,
+                                      text = "Σχολή Μαθήματος: " + subject_array[array_id].department,
+                                      text_color = "#000000",
+                                      font=('Arial', 20))
+        
+
+        subject_department_label.pack(anchor = "w", pady = 5)
+
         # show subject code
 
-        subject_name_label = ctk.CTkLabel(self.content_frame,
-                                      text = "Κωδικός Μαθήματος: " + subject_array[array_id].code,
+        subject_code_label = ctk.CTkLabel(self.content_frame,
+                                      text = "Κωδικός Μαθήματος: " + subject_array[array_id].course_id,
                                       text_color = "#000000",
                                       font=('Arial', 15))
         
 
-        subject_name_label.pack(anchor = "w", pady = 5)
+        subject_code_label.pack(anchor = "w", pady = 5)
+
+        # show subject ects
+
+        subject_ects_label = ctk.CTkLabel(self.content_frame,
+                                      text = "ECTS Μαθήματος: " + str(subject_array[array_id].ects),
+                                      text_color = "#000000",
+                                      font=('Arial', 15))
+        
+
+        subject_ects_label.pack(anchor = "w", pady = 5)
 
         # show teacher(s) name
 
-        if len(subject_array[array_id].professors) == 1:
+        if len(subject_array[array_id].professor) == 1:
             professor_label = ctk.CTkLabel(self.content_frame,
-                                           text = "Όνομα Καθηγητή: " + subject_array[array_id].professors[0],
+                                           text = "Όνομα Καθηγητή: " + subject_array[array_id].professor[0],
                                            text_color = "#000000",
                                            font=('Arial', 20))
             
@@ -99,7 +118,7 @@ class StatisticsClass:
             
             teacher_title_label.pack(anchor = "w", pady = 5)
 
-            for teacherName in subject_array[array_id].professors:
+            for teacherName in subject_array[array_id].professor:
 
                 professor_label = ctk.CTkLabel(self.content_frame,
                                                text = teacherName,
@@ -112,7 +131,7 @@ class StatisticsClass:
         # show hours studied
 
         hours_label = ctk.CTkLabel(self.content_frame,
-                                   text = "Ώρες Μελέτης: " + str(subject_array[array_id].hours),
+                                   text = "Ώρες Μελέτης: " + str(subject_array[array_id].study_hours),
                                    text_color = "#000000",
                                    font=('Arial', 20))
         
@@ -125,7 +144,7 @@ class StatisticsClass:
         total_study_hours = 0
 
         for subject in subject_array:
-            total_study_hours += subject.hours
+            total_study_hours += subject.study_hours
         
         
         hours_label = ctk.CTkLabel(self.content_frame,
@@ -144,7 +163,7 @@ class StatisticsClass:
 
         for subject in subject_array:
             indiv_subject_hours = ctk.CTkLabel(self.content_frame,
-                                               text = str(subject.name) + ": " + str(subject.hours),
+                                               text = str(subject.course_name) + ": " + str(subject.study_hours),
                                                text_color = "#000000",
                                                font=('Arial', 20))
             
