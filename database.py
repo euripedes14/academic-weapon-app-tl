@@ -9,6 +9,14 @@ def create_database():
 
 def create_tables(conn):
     cur = conn.cursor()
+
+    # Drop tables if they exist (in reverse dependency order)
+    cur.execute('DROP TABLE IF EXISTS USER_STREAKS;')
+    cur.execute('DROP TABLE IF EXISTS PROFILE_SETTINGS;')
+    cur.execute('DROP TABLE IF EXISTS ACCOUNT_SETTINGS;')
+    cur.execute('DROP TABLE IF EXISTS STREAKS;')
+    cur.execute('DROP TABLE IF EXISTS USERS;')
+
     # USERS table
     cur.execute('''
     CREATE TABLE IF NOT EXISTS USERS (
@@ -63,6 +71,13 @@ def create_tables(conn):
 
 def create_log_tables(conn):
     cur = conn.cursor()
+
+    # Drop log tables if they exist (in any order)
+    cur.execute('DROP TABLE IF EXISTS USERS_LOG;')
+    cur.execute('DROP TABLE IF EXISTS STREAKS_LOG;')
+    cur.execute('DROP TABLE IF EXISTS PROFILE_SETTINGS_LOG;')
+    cur.execute('DROP TABLE IF EXISTS ACCOUNT_SETTINGS_LOG;')
+
     # Create USERS_LOG table
     cur.execute('''
     CREATE TABLE IF NOT EXISTS USERS_LOG (
@@ -117,6 +132,21 @@ def create_log_tables(conn):
 
 def create_triggers(conn):
     cur = conn.cursor()
+
+    # Drop triggers if they exist
+    cur.execute('DROP TRIGGER IF EXISTS trg_users_insert;')
+    cur.execute('DROP TRIGGER IF EXISTS trg_users_update;')
+    cur.execute('DROP TRIGGER IF EXISTS trg_users_delete;')
+    cur.execute('DROP TRIGGER IF EXISTS trg_streaks_insert;')
+    cur.execute('DROP TRIGGER IF EXISTS trg_streaks_update;')
+    cur.execute('DROP TRIGGER IF EXISTS trg_streaks_delete;')
+    cur.execute('DROP TRIGGER IF EXISTS trg_profile_settings_insert;')
+    cur.execute('DROP TRIGGER IF EXISTS trg_profile_settings_update;')
+    cur.execute('DROP TRIGGER IF EXISTS trg_profile_settings_delete;')
+    cur.execute('DROP TRIGGER IF EXISTS trg_account_settings_insert;')
+    cur.execute('DROP TRIGGER IF EXISTS trg_account_settings_update;')
+    cur.execute('DROP TRIGGER IF EXISTS trg_account_settings_delete;')
+
     # USERS triggers
     cur.execute('''
     CREATE TRIGGER IF NOT EXISTS trg_users_insert
@@ -268,5 +298,3 @@ def check_user_credentials(conn, username, password):
     SELECT * FROM USERS WHERE username = ? AND password = ?
     ''', (username, password))
     return cur.fetchone() is not None
-
- 
