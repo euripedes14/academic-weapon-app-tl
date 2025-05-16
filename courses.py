@@ -1,8 +1,12 @@
 import customtkinter as ctk
 from tkinter import messagebox
+from subject_class import *
 import openpyxl
-import os  # Import os for handling file paths
+import os
+# import os  # Import os for handling file paths
 import tkinter as tk  # Import tkinter for the calendar popup
+
+
 
 def load_semesters_from_excel():
     """Φορτώνει τα εξάμηνα και τα μαθήματα από το Excel."""
@@ -16,16 +20,30 @@ def load_semesters_from_excel():
     wb = openpyxl.load_workbook(excel_path)
     sheet = wb.active
     data = {}
+
     for row in sheet.iter_rows(min_row=2, values_only=True):
-        sem = row[3]  # Semester is in column D (index 3)
-        course_name = row[1]  # Course name is in column B (index 1)
-        if not sem or not course_name:
+        # course id is column A, course name is column B etc
+        course_id = row[0]
+        course_name = row[1]
+        department = row[2]
+        semester = row[3]
+        ects = row[4]
+        professor = row[5]
+        study_hours = row[6]
+        day = row[7]
+        start_time = row[8]
+        end_time = row[9]
+
+        all_subjects.append(Subject(course_id, course_name, department, semester, ects, [professor], day, start_time, end_time, study_hours))
+
+        if not semester or not course_name:
             continue
-        if sem in data:
-            data[sem].append(course_name)
+        if semester in data:
+            data[semester].append(course_name)
         else:
-            data[sem] = [course_name]
+            data[semester] = [course_name]
     return data
+
 
 # Sample semester/course data
 semesters_data = load_semesters_from_excel()
@@ -36,6 +54,12 @@ selected_courses = []
 def save_courses():
     """Αποθηκεύει μόνο τα τσεκαρισμένα μαθήματα."""
     chosen = [course for course, var in selected_courses if var.get()]
+    
+    for chosen_course in chosen:
+        for subject in all_subjects:
+            if subject.course_name == chosen_course:
+                chosen_subjects.append(subject)
+
     messagebox.showinfo("Αποθήκευση", f"Αποθηκεύτηκαν {len(chosen)} μαθήματα.\n\n{', '.join(chosen)}")
     return chosen
 
