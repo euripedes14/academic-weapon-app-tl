@@ -1,8 +1,12 @@
 import tkinter as tk
 from tkinter import ttk, simpledialog, messagebox
-from database_mitsi import insert_task
-from database_mitsi import complete_task
-from database_mitsi import insert_pomodoro_session
+import customtkinter as ctk
+from courses import chosen_subjects
+
+# # database_mitsi not properly implemented yet 
+# from database_mitsi import insert_task
+# from database_mitsi import complete_task
+# from database_mitsi import insert_pomodoro_session
 
 class StopwatchTimer:
     def __init__(self, parent):
@@ -274,9 +278,9 @@ class PomodoroTimer:
         self.session_input.delete(0, tk.END)
         self.session_input.insert(0, "1")
 
-    #For database
-    def end_pomodoro_session(self, work_duration, break_duration, is_completed):
-        insert_pomodoro_session(work_duration, break_duration, is_completed)
+    # #For database
+    # def end_pomodoro_session(self, work_duration, break_duration, is_completed):
+    #     insert_pomodoro_session(work_duration, break_duration, is_completed)
 
 class TaskScreen:
     def __init__(self, parent):
@@ -287,6 +291,11 @@ class TaskScreen:
         # Create main container with sections
         self.main_frame = tk.Frame(parent, bg="#f2f2f2")
         self.main_frame.pack(fill=tk.BOTH, expand=True)
+
+        # Create top section for Streak
+        self.subjects_frame = tk.Frame(self.main_frame, bg="#f2f2f2", bd=1, relief=tk.RIDGE)
+        self.subjects_frame.pack(fill=tk.X, padx=20, pady=10)
+        self.setup_subject_widget()
 
         # Create top section for Streak
         self.streak_frame = tk.Frame(self.main_frame, bg="#f2f2f2", bd=1, relief=tk.RIDGE)
@@ -306,6 +315,13 @@ class TaskScreen:
         # Create content frame that will be updated
         self.content_frame = tk.Frame(self.main_frame, bg="#f2f2f2", bd=1, relief=tk.RIDGE)
         self.content_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
+
+    def setup_subject_widget(self):
+        subject_container = tk.Frame(self.subjects_frame, bg="#f0f0f0")
+        subject_container.pack(fill=tk.X, padx=10, pady=10)
+
+        # Show courses
+        show_courses_tab(ctk.CTkFrame(subject_container, bg_color="#ffffff"))
 
     def setup_streak_widget(self):
         streak_container = tk.Frame(self.streak_frame, bg="#f0f0f0")
@@ -410,7 +426,7 @@ class TaskScreen:
         if not task_text:
             messagebox.showwarning("Μη έγκυρη Εισαγωγή", "Παρακαλώ εισάγετε ένα όνομα για την εργασία.")
             return
-        insert_task(task_text)  # Save to database
+        # insert_task(task_text)  # Save to database
         self.add_task_to_list(task_text)
 
     def add_task_to_list(self, task_text):
@@ -432,7 +448,7 @@ class TaskScreen:
             if task["var"] == var:
                 if var.get():
                     task["label"].config(fg="#888888", font=("Arial", 10, "overstrike"))
-                    complete_task(task["id"])  # Mark task as completed in the database
+                    # complete_task(task["id"])  # Mark task as completed in the database
                 else:
                     task["label"].config(fg="#000000", font=("Arial", 10))
                 break
@@ -455,3 +471,80 @@ def open_task_screen(parent_frame):
         widget.destroy()
 
     task_screen = TaskScreen(parent_frame)
+
+## Show selected courses. Select courses out of them to add time only for these courses
+
+selected_courses = []
+
+def show_courses_tab(content_frame):
+    """Display the Courses tab."""
+    
+    for widget in content_frame.winfo_children():
+        widget.destroy()
+
+    # Semester list
+    semester_list_frame = content_frame
+    semester_list_frame.pack(fill="x", pady=10)
+
+    data = {}
+
+    for subject in chosen_subjects:
+        semester = subject.semester
+        course_name = subject.course_name
+
+        if not semester or not course_name:
+            continue
+        if semester in data:
+            data[semester].append(course_name)
+        else:
+            data[semester] = [course_name]
+
+    for sem, courses in data.items():
+        sem_header = ctk.CTkFrame(semester_list_frame, bg_color="#ffffff")
+        sem_header.pack(fill="x", padx=10, pady=5)
+
+        toggle_button = ctk.CTkButton(
+            sem_header, text=f"+ Semester {sem}",  # Add "Semester" next to the number
+            command=None, fg_color="#e0e0e0", text_color="#000000", hover_color="#d6d6d6"
+        )
+        toggle_button.pack(fill="x")
+
+        course_frame = ctk.CTkFrame(sem_header, bg_color="#ffffff")
+
+        for course in courses:
+            var = ctk.BooleanVar()
+            cb = ctk.CTkCheckBox(course_frame, text=course, variable=var, bg_color="#ffffff")
+            cb.pack(anchor="w", padx=20)
+            selected_courses.append((course, var))
+
+        # Assign toggle behavior
+        toggle_button.configure(command=lambda s=sem, f=course_frame, b=toggle_button: toggle_courses(s, f, b))
+
+    # Save button
+    save_button = ctk.CTkButton(content_frame, text="Αποθήκευση", command=save_courses, width=20, fg_color="#e0e0e0", text_color="#000000", hover_color="#d6d6d6")
+    save_button.pack(pady=20)
+
+
+
+def toggle_courses(sem, course_frame, toggle_button):
+    """Εμφάνιση/απόκρυψη λίστας μαθημάτων σε ένα εξάμηνο."""
+    if course_frame.winfo_ismapped():
+        course_frame.pack_forget()
+        toggle_button.configure(text=f"+ Semester {sem}")  # Use `configure` instead of `config`
+    else:
+        course_frame.pack(fill="x", padx=30)
+        toggle_button.configure(text=f"- Semester {sem}")  # Use `configure` instead of `config`
+
+study_subjects = []
+
+def save_courses():
+    """Αποθηκεύει μόνο τα τσεκαρισμένα μαθήματα."""
+    chosen = [course for course, var in selected_courses if var.get()]
+    
+    for chosen_course in chosen:
+        for subject in chosen_subjects:
+            if subject.course_name == chosen_course:
+                study_subjects.append(subject)
+
+    messagebox.showinfo("Αποθήκευση", f"Αποθηκεύτηκαν {len(chosen)} μαθήματα.\n\n{', '.join(chosen)}")
+    return chosen
