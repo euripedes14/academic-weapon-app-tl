@@ -1,5 +1,8 @@
 import tkinter as tk
 from tkinter import ttk, simpledialog, messagebox
+from database_mitsi import insert_task
+from database_mitsi import complete_task
+from database_mitsi import insert_pomodoro_session
 
 class StopwatchTimer:
     def __init__(self, parent):
@@ -271,6 +274,10 @@ class PomodoroTimer:
         self.session_input.delete(0, tk.END)
         self.session_input.insert(0, "1")
 
+    #For database
+    def end_pomodoro_session(self, work_duration, break_duration, is_completed):
+        insert_pomodoro_session(work_duration, break_duration, is_completed)
+
 class TaskScreen:
     def __init__(self, parent):
         self.parent = parent
@@ -403,6 +410,7 @@ class TaskScreen:
         if not task_text:
             messagebox.showwarning("Μη έγκυρη Εισαγωγή", "Παρακαλώ εισάγετε ένα όνομα για την εργασία.")
             return
+        insert_task(task_text)  # Save to database
         self.add_task_to_list(task_text)
 
     def add_task_to_list(self, task_text):
@@ -424,6 +432,7 @@ class TaskScreen:
             if task["var"] == var:
                 if var.get():
                     task["label"].config(fg="#888888", font=("Arial", 10, "overstrike"))
+                    complete_task(task["id"])  # Mark task as completed in the database
                 else:
                     task["label"].config(fg="#000000", font=("Arial", 10))
                 break
