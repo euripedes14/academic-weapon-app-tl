@@ -211,13 +211,38 @@ def show_settings_tab(content_frame):
     no_back_to_back_checkbox = ctk.CTkCheckBox(settings_frame, text="Όχι το ίδιο μάθημα συνεχόμενα", variable=no_back_to_back_var)
     no_back_to_back_checkbox.pack(anchor="w", padx=10, pady=5)
 
+    pomodoropref_var = ctk.BooleanVar()
+    pomodoropref_checkbox = ctk.CTkCheckBox(settings_frame, text="Χρονόμετρο Pomodoro", variable=pomodoropref_var)
+    pomodoropref_checkbox.pack(anchor="w", padx=10, pady=5)
+
     timerpref_var = ctk.BooleanVar()
-    timerpref_checkbox = ctk.CTkCheckBox(settings_frame, text="Διαλείμματα Pomodoro", variable=timerpref_var)
+    timerpref_checkbox = ctk.CTkCheckBox(settings_frame, text="Απλό χρονόμετρο", variable=timerpref_var)
     timerpref_checkbox.pack(anchor="w", padx=10, pady=5)
 
-    save_settings_button = ctk.CTkButton(settings_frame, text="Αποθήκευση Ρυθμίσεων", command=lambda: save_settings(availability_var.get(), session_length_entry.get(), no_back_to_back_var.get()))
+    save_settings_button = ctk.CTkButton(
+    settings_frame,
+    text="Αποθήκευση Ρυθμίσεων",
+    command=lambda: save_settings(
+        availability_var.get(),
+        session_length_entry.get(),
+        no_back_to_back_var.get(),
+        pomodoropref_var.get(),
+        timerpref_var.get()
+    )
+)
     save_settings_button.pack(pady=10)
 
-def save_settings(availability, session_length, no_back_to_back):
-    """Αποθηκεύει τις ρυθμίσεις του χρήστη."""
+# def save_settings(availability, session_length, no_back_to_back):
+#     """Αποθηκεύει τις ρυθμίσεις του χρήστη."""
+#     messagebox.showinfo("Ρυθμίσεις", f"Οι ρυθμίσεις αποθηκεύτηκαν:\n\nΔιαθεσιμότητα: {availability}\nΜέγιστη Διάρκεια: {session_length} λεπτά\nΌχι το ίδιο μάθημα συνεχόμενα: {'Ναι' if no_back_to_back else 'Όχι'}")
+def save_settings(availability, session_length, no_back_to_back, pomodoro_pref, timer_pref):
+    # Save to a file (overwrite each time)
+    with open("user_timer_pref.txt", "w") as f:
+        if pomodoro_pref:
+            f.write("pomodoro")
+        elif timer_pref:
+            f.write("stopwatch")
+        else:
+            f.write("none")
     messagebox.showinfo("Ρυθμίσεις", f"Οι ρυθμίσεις αποθηκεύτηκαν:\n\nΔιαθεσιμότητα: {availability}\nΜέγιστη Διάρκεια: {session_length} λεπτά\nΌχι το ίδιο μάθημα συνεχόμενα: {'Ναι' if no_back_to_back else 'Όχι'}")
+
