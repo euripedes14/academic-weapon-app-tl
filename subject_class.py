@@ -1,33 +1,27 @@
+ 
 
 class Subject:
 
-    def __init__(self, subjectName, professorNames, hoursStudied, courseCode):
+    def __init__(self, course_id, course_name, department,
+                 semester, ects, professor_name, day, 
+                 start_time, end_time, study_hours):
         
-        self.name = subjectName
-        self.professors = professorNames
-        self.hours = hoursStudied
-        #self.emails = teacherEmail
-        self.code = courseCode
+        self.course_id = course_id
+        self.course_name = course_name
+        self.department = department
+        self.semester = semester
+        self.ects = ects
+        self.professor = professor_name
+        self.day = day
+        self.start_time = start_time
+        self.end_time = end_time
+        self.study_hours = study_hours
+
+all_subjects = []
+chosen_subjects = []
 
 
-subject1 = Subject("Τεχνολογία Λογισμικού",
-                   ["Μιχάλης Ξένος", "Ιωάννης Βασιλόπουλος", "Αριστείδης Ηλίας"],
-                   10,
-                   "CEID1030")
 
-subject2 = Subject("Προηγμένοι Μικροεπεξεργαστές",
-                   ["Νικόλαος Σκλάβος"],
-                   5,
-                   "CEID1157")
 
-subject3 = Subject("Εργαστήριο Προηγμένοι Μικροεπεξεργαστές",
-                   ["Μαριλένα Δούναβη"],
-                   20,
-                   "CEID1088")
 
-subject4 = Subject("test subject with an extroardinarily long name to test text wrapping i suppose",
-                   ["Μαριλένα Δούναβη"],
-                   0,
-                   "CEID1088")
 
-test_subject_array = [subject1, subject2, subject3, subject4]
