@@ -12,6 +12,9 @@ from spendings import ExpenseTrackerApp
 # Εφαρμογή breeze theme σε όλα τα CTk widgets
 ctk.set_default_color_theme("themes/breeze.json")
 
+##############
+#################
+
 def open_settings(parent_frame):
     for widget in parent_frame.winfo_children():
         widget.destroy()
@@ -52,6 +55,8 @@ class HomeScreen:
         self.add_nav_button("Διαχείριση Εξόδων", self.open_spendings)
         self.add_nav_button("Ρυθμίσεις", self.show_settings)
         self.add_nav_button("Αποσύνδεση", self.logout, fg_color="#faa2a2", hover_color="#f88379")
+
+
 
         self.open_homescreen()
 

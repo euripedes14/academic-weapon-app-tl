@@ -130,7 +130,7 @@ def open_calendar_popup(parent, availability_var):
     """Open a calendar-like popup for selecting available study times."""
     popup = ctk.CTkToplevel(parent)
     popup.title("Επιλογή Διαθεσιμότητας")
-    popup.geometry("500x500")
+    popup.geometry("300x400")
     popup.grab_set()
 
     instructions = ctk.CTkLabel(popup, text="Επιλέξτε τις διαθέσιμες ώρες με κλικ:", font=("Arial", 12))
@@ -210,6 +210,10 @@ def show_settings_tab(content_frame):
     no_back_to_back_var = ctk.BooleanVar()
     no_back_to_back_checkbox = ctk.CTkCheckBox(settings_frame, text="Όχι το ίδιο μάθημα συνεχόμενα", variable=no_back_to_back_var)
     no_back_to_back_checkbox.pack(anchor="w", padx=10, pady=5)
+
+    timerpref_var = ctk.BooleanVar()
+    timerpref_checkbox = ctk.CTkCheckBox(settings_frame, text="Διαλείμματα Pomodoro", variable=timerpref_var)
+    timerpref_checkbox.pack(anchor="w", padx=10, pady=5)
 
     save_settings_button = ctk.CTkButton(settings_frame, text="Αποθήκευση Ρυθμίσεων", command=lambda: save_settings(availability_var.get(), session_length_entry.get(), no_back_to_back_var.get()))
     save_settings_button.pack(pady=10)
