@@ -9,6 +9,9 @@ from task import open_task_screen
 from statistics_screen import StatisticsClass
 from spendings import ExpenseTrackerApp
 
+# Εφαρμογή breeze theme σε όλα τα CTk widgets
+ctk.set_default_color_theme("themes/breeze.json")
+
 def open_settings(parent_frame):
     for widget in parent_frame.winfo_children():
         widget.destroy()
@@ -28,17 +31,16 @@ class HomeScreen:
         self.root.state("zoomed")
 
         # Main frame
-        self.main_frame = ctk.CTkFrame(self.root, fg_color="#f2f2f2")
+        self.main_frame = ctk.CTkFrame(self.root)
         self.main_frame.pack(fill="both", expand=True)
 
         # Top navigation bar
-        self.nav_frame = ctk.CTkFrame(self.main_frame, fg_color="#f9f9f9", corner_radius=10)
-        self.nav_frame.pack(side="top", fill="x", padx=0, pady=0)  # <--- Remove horizontal padding
+        self.nav_frame = ctk.CTkFrame(self.main_frame, corner_radius=10)
+        self.nav_frame.pack(side="top", fill="x", padx=0, pady=0)
 
         # Content frame (make it fill all available space)
-        self.content_frame = ctk.CTkFrame(self.main_frame, fg_color="#ffffff", corner_radius=10)
-        self.content_frame.pack(side="top", fill="both", expand=True, padx=0, pady=0)  #no padding
-
+        self.content_frame = ctk.CTkFrame(self.main_frame, corner_radius=10)
+        self.content_frame.pack(side="top", fill="both", expand=True, padx=0, pady=0)
 
         # Navigation buttons (all on top)
         self.add_nav_button("Αρχική Οθόνη", self.open_homescreen)
@@ -53,14 +55,15 @@ class HomeScreen:
 
         self.open_homescreen()
 
-    def add_nav_button(self, text, command, fg_color="#e0e0e0", hover_color="#bdbdbd"):
+    def add_nav_button(self, text, command, fg_color=None, hover_color=None):
+        # Εφαρμογή breeze theme: αφήνουμε τα default αν δεν δοθούν τιμές
         btn = ctk.CTkButton(
             self.nav_frame,
             text=text,
             command=command,
             width=150,
-            fg_color=fg_color,
-            hover_color=hover_color,
+            fg_color=fg_color if fg_color else None,
+            hover_color=hover_color if hover_color else None,
             corner_radius=5,
             text_color="#000000"
         )
@@ -110,6 +113,9 @@ class HomeScreen:
 
 if __name__ == "__main__":
     root = ctk.CTk()
+    # Εφαρμογή breeze theme και εμφάνιση light mode για συνέπεια
+    ctk.set_default_color_theme("themes/breeze.json")
+    ctk.set_appearance_mode("light")
     app = HomeScreen(root)
     root.mainloop()
     
@@ -119,5 +125,3 @@ if __name__ == "__main__":
 # The application is built using the Tkinter library, which is a standard GUI toolkit for Python. It also utilizes customtkinter for enhanced UI components and aesthetics. The code is structured to allow for easy navigation and interaction, making it suitable for both novice and experienced users.
 # The use of classes and functions helps to keep the code organized and maintainable, allowing for future enhancements and modifications without significant restructuring. The application is designed to be responsive and adaptable to different screen sizes, ensuring a smooth user experience across various devices.
 # Overall our code serves as a solid foundation for a student management system, providing essential features and a user-friendly interface. It can be further expanded with additional functionalities and improvements based on user feedback and requirements.
-
-

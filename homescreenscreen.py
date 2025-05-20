@@ -4,6 +4,9 @@ from tkinter import messagebox, ttk
 import customtkinter as ctk
 import random
 
+# Εφαρμογή breeze theme σε όλα τα CTk widgets
+ctk.set_default_color_theme("themes/breeze.json")
+
 funfacts = [
     "Some squirrels can fly",
     "If you study you will succeed",
@@ -18,14 +21,13 @@ class HomeScreenScreen:
         for widget in self.parent_frame.winfo_children():
             widget.destroy()
 
-        # Use CTkFrame and make it fill/expand
-        container = ctk.CTkFrame(self.parent_frame, fg_color="#ffffff")
+        # CTkFrame με breeze theme (χωρίς fg_color για να πάρει το theme)
+        container = ctk.CTkFrame(self.parent_frame)
         container.pack(fill="both", expand=True, padx=0, pady=0)
 
         indiv_label = ctk.CTkLabel(
             container,
             text="Το Fun fact της ημέρας είναι:",
-            text_color="#000000",
             font=('Arial', 30)
         )
         indiv_label.pack(anchor="n", pady=5)
@@ -33,7 +35,6 @@ class HomeScreenScreen:
         funfact_label = ctk.CTkLabel(
             container,
             text=random.choice(funfacts),
-            text_color="#000000",
             font=('Arial', 20)
         )
         funfact_label.pack(anchor="n", pady=5)
@@ -41,7 +42,6 @@ class HomeScreenScreen:
         ctk.CTkLabel(
             container,
             text="\nΣήμερα η εστία έχει:",
-            text_color="#000000",
             font=('Arial', 20),
             anchor="n",
             pady=5
