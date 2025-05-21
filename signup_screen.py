@@ -1,7 +1,7 @@
 from login_signup_basescreen import BaseScreen
 import customtkinter as ctk
 from CTkMessagebox import CTkMessagebox
-from database import create_database, create_tables, insert_user
+from database_drop import create_database, create_tables, insert_user
 
 
 # Example for signup_screen.py

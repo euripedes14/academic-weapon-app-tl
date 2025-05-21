@@ -1,7 +1,7 @@
 from login_signup_basescreen import BaseScreen
 import customtkinter as ctk
 from CTkMessagebox import CTkMessagebox
-from database import create_database, create_tables, check_user_credentials
+from database_drop import create_database, create_tables, check_user_credentials
 
 
 class LoginScreen(BaseScreen):

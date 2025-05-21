@@ -1,6 +1,6 @@
 import pandas as pd
 from sqlalchemy.orm import Session
-from database import Course, SessionLocal
+from database_drop import Course, SessionLocal
 
 def import_courses_from_excel(file_path):
     """Import courses from an Excel file into the database."""
