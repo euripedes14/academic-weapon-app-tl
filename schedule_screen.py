@@ -3,6 +3,9 @@ from tkinter import simpledialog, messagebox, ttk
 from tkcalendar import Calendar
 import datetime
 
+ctk.set_default_color_theme("themes/breeze.json")
+
+
 class ScheduleScreen(ctk.CTkFrame):
     def __init__(self, parent):
         super().__init__(parent, fg_color="#f2f2f2", corner_radius=10)
@@ -52,6 +55,7 @@ class ScheduleScreen(ctk.CTkFrame):
         event_hour = simpledialog.askstring("Προσθήκη Ώρας", "Εισάγετε την ώρα της υποχρέωσης (π.χ. 14:00):")
         if event_name and event_hour:
             self.events.append((selected_date, event_name, event_hour))
+            save_event_to_file(selected_date, event_name, event_hour)
             messagebox.showinfo("Υποχρέωση Προστέθηκε", f"Υποχρέωση '{event_name}' προστέθηκε για {selected_date} στις {event_hour}.")
             self.update_event_lists()
 
@@ -69,6 +73,10 @@ class ScheduleScreen(ctk.CTkFrame):
             self.past_events_tree.insert("", "end", values=(event[0], event[1], event[2]))
         for event in upcoming_events:
             self.upcoming_events_tree.insert("", "end", values=(event[0], event[1], event[2]))
+
+def save_event_to_file(date, event_name, event_hour):
+    with open("events.txt", "a", encoding="utf-8") as f:
+        f.write(f"{date}|{event_name}|{event_hour}\n")
 
 def open_schedule(parent_frame):
     for widget in parent_frame.winfo_children():

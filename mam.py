@@ -8,6 +8,20 @@ import fitz  # PyMuPDF
 from map_search import MapSearch
 import threading
 
+# Εφαρμογή breeze theme σε όλα τα CTk widgets
+ctk.set_default_color_theme("themes/breeze.json")
+ctk.set_appearance_mode("light")
+
+MENU = {
+    "Δευτέρα": ["Κοτόπουλο με ρύζι", "Σαλάτα", "Γιαούρτι"],
+    "Τρίτη": ["Μακαρόνια με κιμά", "Τυρί φέτα", "Φρούτο"],
+    "Τετάρτη": ["Φασολάκια", "Ψωμί", "Μήλο"],
+    "Πέμπτη": ["Μπιφτέκια", "Πατάτες φούρνου", "Γιαούρτι"],
+    "Παρασκευή": ["Ψάρι", "Χόρτα", "Πορτοκάλι"],
+    "Σάββατο": ["Γεμιστά", "Φέτα", "Φρούτο"],
+    "Κυριακή": ["Κοτόπουλο με πατάτες", "Σαλάτα", "Γλυκό"]
+}
+
 def create_scrollable_frame(nutrition_frame):
     main_frame = ctk.CTkFrame(nutrition_frame, fg_color="#f2f2f2", corner_radius=10)
     nutrition_frame.update_idletasks()
@@ -31,6 +45,80 @@ def create_scrollable_frame(nutrition_frame):
     canvas.bind_all("<MouseWheel>", lambda event: canvas.yview_scroll(int(-1 * (event.delta / 120)), "units"))
 
     return canvas, scrollable_frame
+
+class NutritionScreen:
+    def __init__(self, parent_frame):
+        self.parent_frame = parent_frame
+        self.day_var = ctk.StringVar(value="Δευτέρα")
+        self.create_ui()
+
+    def create_ui(self):
+        for widget in self.parent_frame.winfo_children():
+            widget.destroy()
+
+        # Κεντρικό πλαίσιο
+        container = ctk.CTkFrame(self.parent_frame, corner_radius=15)
+        container.pack(fill="both", expand=True, padx=40, pady=40)
+
+        # Τίτλος
+        title = ctk.CTkLabel(container, text="Μενού Εστίας", font=("Arial", 28, "bold"))
+        title.pack(pady=(10, 20))
+
+        # Fun fact ή inspirational quote
+        funfact = ctk.CTkLabel(
+            container,
+            text="🍏 \"Η σωστή διατροφή είναι το μυστικό της ενέργειας!\"",
+            font=("Arial", 16, "italic")
+        )
+        funfact.pack(pady=(0, 20))
+
+        # Επιλογή ημέρας
+        day_frame = ctk.CTkFrame(container)
+        day_frame.pack(pady=10)
+        ctk.CTkLabel(day_frame, text="Επιλέξτε ημέρα:", font=("Arial", 15)).pack(side="left", padx=5)
+        day_menu = ctk.CTkComboBox(
+            day_frame, variable=self.day_var, values=list(MENU.keys()), width=150, font=("Arial", 14), command=self.update_menu
+        )
+        day_menu.pack(side="left", padx=5)
+
+        # Πλαίσιο εμφάνισης μενού
+        self.menu_frame = ctk.CTkFrame(container, corner_radius=10)
+        self.menu_frame.pack(fill="both", expand=True, pady=25, padx=20)
+        self.menu_labels = []
+        self.update_menu(self.day_var.get())
+
+        # Σχόλια/feedback
+        feedback_label = ctk.CTkLabel(container, text="Έχεις σχόλια για το μενού;", font=("Arial", 14))
+        feedback_label.pack(pady=(20, 5))
+        self.feedback_entry = ctk.CTkEntry(container, placeholder_text="Γράψε εδώ το σχόλιό σου...", width=350)
+        self.feedback_entry.pack(pady=5)
+        submit_btn = ctk.CTkButton(container, text="Υποβολή", command=self.submit_feedback, width=120)
+        submit_btn.pack(pady=(5, 15))
+
+    def update_menu(self, day):
+        # Καθαρισμός προηγούμενων labels
+        for label in self.menu_labels:
+            label.destroy()
+        self.menu_labels.clear()
+
+        menu_items = MENU.get(day, [])
+        if not menu_items:
+            lbl = ctk.CTkLabel(self.menu_frame, text="Δεν υπάρχει διαθέσιμο μενού.", font=("Arial", 16))
+            lbl.pack(pady=10)
+            self.menu_labels.append(lbl)
+        else:
+            for item in menu_items:
+                lbl = ctk.CTkLabel(self.menu_frame, text=f"• {item}", font=("Arial", 18))
+                lbl.pack(anchor="w", padx=20, pady=8)
+                self.menu_labels.append(lbl)
+
+    def submit_feedback(self):
+        feedback = self.feedback_entry.get()
+        if feedback.strip():
+            ctk.CTkMessagebox(title="Ευχαριστούμε!", message="Το σχόλιό σου καταχωρήθηκε.")
+            self.feedback_entry.delete(0, "end")
+        else:
+            ctk.CTkMessagebox(title="Προσοχή", message="Παρακαλώ γράψε ένα σχόλιο πριν την υποβολή.")
 
 def open_nutrition(nutrition_frame):
     for widget in nutrition_frame.winfo_children():
