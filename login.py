@@ -1,7 +1,7 @@
 import customtkinter as ctk
 from login_signup_basescreen import BaseScreen
 from CTkMessagebox import CTkMessagebox
-from database import create_database, create_tables, check_user_credentials
+from database_drop import create_database, create_tables, check_user_credentials
 
 # Εφαρμογή breeze theme σε όλα τα CTk widgets
 ctk.set_default_color_theme("themes/breeze.json")

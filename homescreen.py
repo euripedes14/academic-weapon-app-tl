@@ -112,9 +112,11 @@ class HomeScreen:
         ExpenseTrackerApp(self.content_frame)
 
     def logout(self):
-        self.root.destroy()
-        from login import login_app
-        login_app()
+        answer = messagebox.askyesno("Αποσύνδεση", "Είστε σίγουροι ότι θελετε να αποσυνδεθείτε;\nWe will be sad to see you go :c")
+        if answer:
+            self.root.destroy()
+            from login import login_app
+            login_app()
 
 if __name__ == "__main__":
     root = ctk.CTk()

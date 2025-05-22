@@ -3,6 +3,8 @@ from tkinter import simpledialog, messagebox
 from courses import chosen_subjects
 from zonein import open_zonein_screen #change
 
+from zonein import open_zonein_screen #change
+
 
 # Εφαρμογή breeze theme
 ctk.set_default_color_theme("themes/breeze.json")
@@ -136,62 +138,3 @@ def open_task_screen(parent_frame):
     for widget in parent_frame.winfo_children():
         widget.destroy()
     TaskScreen(parent_frame)
-
-
-
-####################
-# Function to show courses in the task screen i am taking it to zonein
-# selected_courses = []
-
-# def show_courses_tab(content_frame):
-#     for widget in content_frame.winfo_children():
-#         widget.destroy()
-#     semester_list_frame = content_frame
-#     semester_list_frame.pack(fill="x", pady=10)
-#     data = {}
-#     for subject in chosen_subjects:
-#         semester = subject.semester
-#         course_name = subject.course_name
-#         if not semester or not course_name:
-#             continue
-#         if semester in data:
-#             data[semester].append(course_name)
-#         else:
-#             data[semester] = [course_name]
-#     for sem, courses in data.items():
-#         sem_header = ctk.CTkFrame(semester_list_frame)
-#         sem_header.pack(fill="x", padx=10, pady=5)
-#         toggle_button = ctk.CTkButton(
-#             sem_header, text=f"+ Semester {sem}",
-#             command=None
-#         )
-#         toggle_button.pack(fill="x")
-#         course_frame = ctk.CTkFrame(sem_header)
-#         for course in courses:
-#             var = ctk.BooleanVar()
-#             cb = ctk.CTkCheckBox(course_frame, text=course, variable=var)
-#             cb.pack(anchor="w", padx=20)
-#             selected_courses.append((course, var))
-#         toggle_button.configure(command=lambda s=sem, f=course_frame, b=toggle_button: toggle_courses(s, f, b))
-#     save_button = ctk.CTkButton(content_frame, text="Αποθήκευση", command=save_courses, width=20)
-#     save_button.pack(pady=20)
-
-# def toggle_courses(sem, course_frame, toggle_button):
-#     if course_frame.winfo_ismapped():
-#         course_frame.pack_forget()
-#         toggle_button.configure(text=f"+ Semester {sem}")
-#     else:
-#         course_frame.pack(fill="x", padx=30)
-#         toggle_button.configure(text=f"- Semester {sem}")
-
-# study_subjects = []
-
-# def save_courses():
-#     chosen = [course for course, var in selected_courses if var.get()]
-#     for chosen_course in chosen:
-#         for subject in chosen_subjects:
-#             if subject.course_name == chosen_course:
-#                 study_subjects.append(subject)
-#     messagebox.showinfo("Αποθήκευση", f"Αποθηκεύτηκαν {len(chosen)} μαθήματα.\n\n{', '.join(chosen)}")
-#     return chosen
-
