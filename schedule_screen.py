@@ -2,6 +2,7 @@ import customtkinter as ctk
 from CTkMessagebox import CTkMessagebox
 from tkcalendar import Calendar
 import datetime
+from error_control import ErrorControl
 
 ctk.set_default_color_theme("themes/breeze.json")
 
@@ -53,7 +54,7 @@ class ScheduleScreen(ctk.CTkFrame):
         # Past events (DONE)
         self.past_events_frame = ctk.CTkFrame(self, fg_color="#ffffff", corner_radius=10)
         self.past_events_frame.grid(row=0, column=0, sticky="nsew", padx=(10, 5), pady=20)
-        ctk.CTkLabel(self.past_events_frame, text="DONE", font=("Arial", 14, "bold"), text_color="#000000").pack(anchor='n', pady=10)
+        ctk.CTkLabel(self.past_events_frame, text="Ολοκληρωμένες Εργασίες", font=("Arial", 14, "bold"), text_color="#000000").pack(anchor='n', pady=10)
         self.past_events_list = ctk.CTkScrollableFrame(self.past_events_frame, height=300)
         self.past_events_list.pack(fill="both", expand=True, padx=10, pady=10)
 
@@ -61,6 +62,7 @@ class ScheduleScreen(ctk.CTkFrame):
         self.calendar_frame = ctk.CTkFrame(self, fg_color="#ffffff", corner_radius=10)
         self.calendar_frame.grid(row=0, column=1, sticky="nsew", padx=(5, 5), pady=20)
         ctk.CTkLabel(self.calendar_frame, text="Ημερολόγιο", font=("Arial", 14, "bold"), text_color="#000000").pack(anchor='n', pady=10)
+
         self.cal = Calendar(self.calendar_frame, selectmode='day', year=datetime.datetime.now().year,
                             month=datetime.datetime.now().month, day=datetime.datetime.now().day)
         self.cal.pack(fill="both", expand=True, padx=40, pady=40, ipadx=80, ipady=80)
@@ -69,7 +71,7 @@ class ScheduleScreen(ctk.CTkFrame):
         # Upcoming events (TO DO)
         self.upcoming_events_frame = ctk.CTkFrame(self, fg_color="#ffffff", corner_radius=10)
         self.upcoming_events_frame.grid(row=0, column=2, sticky="nsew", padx=(5, 10), pady=20)
-        ctk.CTkLabel(self.upcoming_events_frame, text="TO DO", font=("Arial", 14, "bold"), text_color="#000000").pack(anchor='n', pady=10)
+        ctk.CTkLabel(self.upcoming_events_frame, text="Μη ολοκληρωμένες Εργασίες", font=("Arial", 14, "bold"), text_color="#000000").pack(anchor='n', pady=10)
         self.upcoming_events_list = ctk.CTkScrollableFrame(self.upcoming_events_frame, height=300)
         self.upcoming_events_list.pack(fill="both", expand=True, padx=10, pady=10)
 
@@ -83,12 +85,17 @@ class ScheduleScreen(ctk.CTkFrame):
         event_hour = CTkInputDialog(self, "Προσθήκη Ώρας", "Εισάγετε την ώρα της υποχρέωσης (π.χ. 14:00):").value
         if not event_hour:
             return
+        
+        if not ErrorControl.is_time_slot_available(selected_date, event_hour):
+            CTkMessagebox(title="Σύγκρουση Ώρας", message="Υπάρχει ήδη υποχρέωση για αυτή την ημερομηνία και ώρα.", icon="warning")
+            return
+        
         self.events.append((selected_date, event_name, event_hour))
         save_event_to_file(selected_date, event_name, event_hour)
         CTkMessagebox(title="Υποχρέωση Προστέθηκε", message=f"Υποχρέωση '{event_name}' προστέθηκε για {selected_date} στις {event_hour}.", icon="check")
         self.update_event_lists()
 
-    def update_event_lists(self):
+    def update_event_lists(self):        
         today = datetime.datetime.now().date()
         past_events = [event for event in self.events if datetime.datetime.strptime(event[0], "%m/%d/%y").date() < today]
         upcoming_events = [event for event in self.events if datetime.datetime.strptime(event[0], "%m/%d/%y").date() >= today]

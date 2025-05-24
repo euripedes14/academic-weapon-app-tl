@@ -1,6 +1,7 @@
 import customtkinter as ctk
 from CTkMessagebox import CTkMessagebox
 import datetime
+from error_control import ErrorControl
 
 class CTkInputDialog(ctk.CTkToplevel):
     def __init__(self, parent, title, prompt):
@@ -95,20 +96,6 @@ class TaskScreen:
         # Add tasks from events.txt
         self.add_example_tasks()
 
-    # def add_example_tasks(self):
-    #     # Clear any existing widgets in the tasks_frame before adding new ones
-    #     for widget in self.tasks_frame.winfo_children():
-    #         widget.destroy()
-    #     self.tasks = []
-
-    #     # Load real events from file
-    #     events = self.load_events_from_file()
-    #     if not events:
-    #         self.add_task_to_list("Δεν υπάρχουν προγραμματισμένες εργασίες.")
-    #     else:
-    #         for date, event_name, event_hour in events:
-    #             task_str = f"{event_name} ({date} {event_hour})"
-    #             self.add_task_to_list(task_str)
     
     def add_example_tasks(self):
     # Clear any existing widgets in the tasks_frame before adding new ones
@@ -152,6 +139,11 @@ class TaskScreen:
         task_time = CTkInputDialog(self.parent, "Προσθήκη Ώρας", "Εισάγετε ώρα (π.χ. 14:00):").value
         if not task_time:
             CTkMessagebox(title="Μη έγκυρη Εισαγωγή", message="Παρακαλώ εισάγετε μια ώρα.", icon="warning")
+            return
+        
+        date_str = datetime.datetime.now().strftime('%d/%m/%Y')
+        if not ErrorControl.is_time_slot_available(date_str, task_time):
+            CTkMessagebox(title="Σύγκρουση Ώρας", message="Υπάρχει ήδη εργασία για αυτή την ημερομηνία και ώρα.", icon="warning")
             return
         # Save to events.txt with both task and time
         with open("events.txt", "a", encoding="utf-8") as f:
