@@ -1,8 +1,8 @@
 import customtkinter as ctk
 
 # Εφαρμογή breeze theme σε όλα τα CTk widgets
-ctk.set_default_color_theme("themes/breeze.json")
-ctk.set_appearance_mode("light")
+# ctk.set_default_color_theme("themes/breeze.json")
+# ctk.set_appearance_mode("light")
 
 class BaseScreen:
     def __init__(self, root, title):
