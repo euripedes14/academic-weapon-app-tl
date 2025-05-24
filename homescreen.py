@@ -121,10 +121,10 @@ class HomeScreen:
 if __name__ == "__main__":
     root = ctk.CTk()
     app = HomeScreen(root)
+    ctk.set_appearance_mode("light")
     root.mainloop()
     # Εφαρμογή breeze theme και εμφάνιση light mode για συνέπεια
     ctk.set_default_color_theme("themes/breeze.json")
-    ctk.set_appearance_mode("light")
     
 # We made a Tkinter application that serves as a home screen for a student management system. It includes various functionalities such as course management, scheduling, nutrition tracking, task management, statistics, and settings. Each functionality is encapsulated in its own frame, and the main application allows users to navigate between these frames using a menu bar.
 # The application is designed to be user-friendly and visually appealing, with a consistent color scheme and layout. It also includes features for managing expenses and notifications, making it a comprehensive tool for students.    
