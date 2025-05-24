@@ -8,17 +8,16 @@ from homescreenscreen import HomeScreenScreen
 from task import open_task_screen
 from statistics_screen import StatisticsClass
 from spendings import ExpenseTrackerApp
-
-# Εφαρμογή breeze theme σε όλα τα CTk widgets
-ctk.set_default_color_theme("themes/breeze.json")
+import os
+import json
 
 ##############
 #################
 
-def open_settings(parent_frame):
+def open_settings(parent_frame, username=None):
     for widget in parent_frame.winfo_children():
         widget.destroy()
-    settings_app = SettingsMenuApp(parent_frame)
+    settings_app = SettingsMenuApp(parent_frame, username=username)
     settings_app.main_frame.pack(fill="both", expand=True)
 
 def open_statistics(parent_frame):
@@ -28,8 +27,9 @@ def open_statistics(parent_frame):
     statistics_app.main_frame.pack(fill="both", expand=True)
 
 class HomeScreen:
-    def __init__(self, root):
+    def __init__(self, root, username=None):
         self.root = root
+        self.username = username
         self.root.title("LockIN - Αρχική Οθόνη")
         self.root.state("zoomed")
 
@@ -97,7 +97,7 @@ class HomeScreen:
 
     def show_settings(self):
         self.clear_content()
-        open_settings(self.content_frame)
+        open_settings(self.content_frame, username=self.username)
 
     def show_statistics(self):
         self.clear_content()
@@ -120,11 +120,11 @@ class HomeScreen:
 
 if __name__ == "__main__":
     root = ctk.CTk()
+    app = HomeScreen(root)
+    ctk.set_appearance_mode("light")
+    root.mainloop()
     # Εφαρμογή breeze theme και εμφάνιση light mode για συνέπεια
     ctk.set_default_color_theme("themes/breeze.json")
-    ctk.set_appearance_mode("light")
-    app = HomeScreen(root)
-    root.mainloop()
     
 # We made a Tkinter application that serves as a home screen for a student management system. It includes various functionalities such as course management, scheduling, nutrition tracking, task management, statistics, and settings. Each functionality is encapsulated in its own frame, and the main application allows users to navigate between these frames using a menu bar.
 # The application is designed to be user-friendly and visually appealing, with a consistent color scheme and layout. It also includes features for managing expenses and notifications, making it a comprehensive tool for students.    

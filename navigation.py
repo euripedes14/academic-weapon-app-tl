@@ -4,9 +4,9 @@ from signup_screen import SignUpScreen
 from homescreen import HomeScreen
 
 
-def main_app():
-    """Launch the Home screen."""
+def main_app(username=None):
+    """Launch the Home screen with user context."""
     root = ctk.CTk()
     root.state("zoomed")  # Full screen on Windows
-    app = HomeScreen(root)
+    app = HomeScreen(root, username=username)
     root.mainloop()

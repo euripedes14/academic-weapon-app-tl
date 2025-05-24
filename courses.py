@@ -5,7 +5,7 @@ import openpyxl
 import os
 
 # Εφαρμογή breeze theme σε όλα τα CTk widgets
-ctk.set_default_color_theme("themes/breeze.json")
+# ctk.set_default_color_theme("themes/breeze.json")
 
 def load_semesters_from_excel():
     """Φορτώνει τα εξάμηνα και τα μαθήματα από το Excel."""

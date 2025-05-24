@@ -8,11 +8,11 @@ class StatisticsClass:
         self.parent = parent_frame
 
         # Κύριο πλαίσιο με λευκό φόντο
-        self.main_frame = ctk.CTkFrame(self.parent, corner_radius=10, fg_color="#ffffff")
+        self.main_frame = ctk.CTkFrame(self.parent, corner_radius=10)
         self.main_frame.pack(fill="both", expand=True, padx=20, pady=20)
 
         # Πλαίσιο πλοήγησης με λευκό φόντο
-        self.categories_frame = ctk.CTkFrame(self.main_frame, width=200, corner_radius=10, fg_color="#f9f9f9")
+        self.categories_frame = ctk.CTkFrame(self.main_frame, width=200, corner_radius=10)
         self.categories_frame.pack(side="left", fill="y", padx=10, pady=10)
 
         # Προσθήκη κουμπιών για τις κατηγορίες
@@ -26,7 +26,7 @@ class StatisticsClass:
         
 
         # Περιεχόμενο με λευκό φόντο
-        self.content_frame = ctk.CTkFrame(self.main_frame, corner_radius=10, fg_color="#ffffff")
+        self.content_frame = ctk.CTkFrame(self.main_frame, corner_radius=10)
         self.content_frame.pack(side="right", fill="both", expand=True, padx=10, pady=10)
 
 
@@ -37,9 +37,9 @@ class StatisticsClass:
             self.category_buttons = []
 
         def wrapped_command():
-            for btn in self.category_buttons:
-                btn.configure(fg_color="#e0e0e0")  # Reset other buttons
-            button.configure(fg_color="#cccccc")  # Highlight pressed button
+            # for btn in self.category_buttons:
+            #     btn.configure(fg_color="#e0e0e0")  # Reset other buttons
+            # button.configure(fg_color="#cccccc")  # Highlight pressed button
             command(*Args)  # Execute the passed command
 
         button = ctk.CTkButton(
@@ -47,10 +47,7 @@ class StatisticsClass:
             text=text,
             command=wrapped_command,
             width=250,
-            fg_color="#e0e0e0",  # Light gray background for button
-            hover_color="#d1d1d1",  # Hover effect
-            corner_radius=5,
-            text_color="#000000"  # Black text
+            corner_radius=5
         )
         button._text_label.configure(wraplength=150)
         button.pack(pady=10)
@@ -64,7 +61,6 @@ class StatisticsClass:
 
         subject_name_label = ctk.CTkLabel(self.content_frame,
                                       text = "Όνομα Μαθήματος: " + subject_array[array_id].course_name,
-                                      text_color = "#000000",
                                       font=('Arial', 30))
         
 
@@ -73,7 +69,6 @@ class StatisticsClass:
         # show subject department
         subject_department_label = ctk.CTkLabel(self.content_frame,
                                       text = "Σχολή Μαθήματος: " + subject_array[array_id].department,
-                                      text_color = "#000000",
                                       font=('Arial', 20))
         
 
@@ -83,7 +78,6 @@ class StatisticsClass:
 
         subject_code_label = ctk.CTkLabel(self.content_frame,
                                       text = "Κωδικός Μαθήματος: " + subject_array[array_id].course_id,
-                                      text_color = "#000000",
                                       font=('Arial', 15))
         
 
@@ -93,7 +87,6 @@ class StatisticsClass:
 
         subject_ects_label = ctk.CTkLabel(self.content_frame,
                                       text = "ECTS Μαθήματος: " + str(subject_array[array_id].ects),
-                                      text_color = "#000000",
                                       font=('Arial', 15))
         
 
@@ -104,7 +97,6 @@ class StatisticsClass:
         if len(subject_array[array_id].professor) == 1:
             professor_label = ctk.CTkLabel(self.content_frame,
                                            text = "Όνομα Καθηγητή: " + subject_array[array_id].professor[0],
-                                           text_color = "#000000",
                                            font=('Arial', 20))
             
             professor_label.pack(anchor = "w", pady = 5)
@@ -113,7 +105,6 @@ class StatisticsClass:
             
             teacher_title_label = ctk.CTkLabel(self.content_frame,
                                                text = "Ονόματα Καθηγητών: ",
-                                               text_color = "#000000",
                                                font=('Arial', 20))
             
             teacher_title_label.pack(anchor = "w", pady = 5)
@@ -122,7 +113,6 @@ class StatisticsClass:
 
                 professor_label = ctk.CTkLabel(self.content_frame,
                                                text = teacherName,
-                                               text_color = "#000000",
                                                font=('Arial', 20))
                 
                 professor_label.pack(anchor = "w", pady = 5, padx=50,)
@@ -132,7 +122,6 @@ class StatisticsClass:
 
         hours_label = ctk.CTkLabel(self.content_frame,
                                    text = "Ώρες Μελέτης: " + str(subject_array[array_id].study_hours),
-                                   text_color = "#000000",
                                    font=('Arial', 20))
         
         hours_label.pack(anchor = "w", pady = 5)
@@ -149,14 +138,12 @@ class StatisticsClass:
         
         hours_label = ctk.CTkLabel(self.content_frame,
                                    text = "Συνολικές Ώρες Μελέτης: " + str(total_study_hours),
-                                   text_color = "#000000",
                                    font=('Arial', 30))
         
         hours_label.pack(anchor = "w", pady = 5)
 
         indiv_label = ctk.CTkLabel(self.content_frame,
                                    text = "\nΞεχωριστά ώρες μελέτης ανά μάθημα: ",
-                                   text_color = "#000000",
                                    font=('Arial', 25))
         
         indiv_label.pack(anchor = "w", pady = 5)
@@ -164,7 +151,6 @@ class StatisticsClass:
         for subject in subject_array:
             indiv_subject_hours = ctk.CTkLabel(self.content_frame,
                                                text = str(subject.course_name) + ": " + str(subject.study_hours),
-                                               text_color = "#000000",
                                                font=('Arial', 20))
             
             indiv_subject_hours.pack(anchor = "w", pady = 5)

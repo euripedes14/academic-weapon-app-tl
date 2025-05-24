@@ -1,4 +1,5 @@
 import os
+import json
 import customtkinter as ctk
 from tkinter import messagebox
 from PIL import Image, ImageTk
@@ -9,8 +10,7 @@ from map_search import MapSearch
 import threading
 
 # Εφαρμογή breeze theme σε όλα τα CTk widgets
-ctk.set_default_color_theme("themes/breeze.json")
-ctk.set_appearance_mode("light")
+# ctk.set_default_color_theme("themes/breeze.json")
 
 MENU = {
     "Δευτέρα": ["Κοτόπουλο με ρύζι", "Σαλάτα", "Γιαούρτι"],
@@ -124,17 +124,40 @@ def open_nutrition(nutrition_frame):
     for widget in nutrition_frame.winfo_children():
         widget.destroy()
 
-    canvas, scrollable_frame = create_scrollable_frame(nutrition_frame)
+    # Breeze theme χρώματα
+    theme_fg = "#B4D9E7"  # light mode
+    theme_fg_dark = "#1E3A46"  # dark mode
 
-    square_frame = ctk.CTkFrame(scrollable_frame, fg_color="#ffffff", width=300, height=200, corner_radius=10)
-    square_frame.pack(pady=20)
-    square_frame.pack_propagate(False)
+    # Ερώτηση και κουμπιά επιλογής στο πάνω μέρος
+    top_frame = ctk.CTkFrame(nutrition_frame, fg_color=theme_fg)
+    top_frame.pack(pady=(30, 10))
 
-    message_label = ctk.CTkLabel(square_frame, text="Που θα φας σήμερα?", font=("Arial", 14), text_color="#000000")
-    message_label.pack(pady=20)
+    message_label = ctk.CTkLabel(top_frame, text="Που θα φας σήμερα?", font=("Arial", 18, "bold"), text_color="#000000")
+    message_label.pack(pady=10)
 
-    button_frame = ctk.CTkFrame(square_frame, fg_color="#ffffff")
-    button_frame.pack(pady=10)
+    button_frame = ctk.CTkFrame(top_frame, fg_color=theme_fg)
+    button_frame.pack(pady=5)
+
+    # Κάτω μέρος για το δυναμικό περιεχόμενο
+    content_frame = ctk.CTkFrame(nutrition_frame, fg_color=theme_fg)
+    content_frame.pack(fill=ctk.BOTH, expand=True, padx=40, pady=20)
+
+    def show_choice(choice):
+        # Καθαρίζει το κάτω μέρος και εμφανίζει το περιεχόμενο της επιλογής
+        for widget in content_frame.winfo_children():
+            widget.destroy()
+        # Κουμπί επιστροφής
+        back_btn = ctk.CTkButton(content_frame, text="Πίσω", fg_color="#e0e0e0", hover_color="#bdbdbd", text_color="#000000", command=reset_to_question)
+        back_btn.pack(pady=(0, 10))
+        # Περιεχόμενο ανά επιλογή
+        if choice == "estia":
+            show_estia(content_frame)
+        elif choice == "allou":
+            show_allou(content_frame)
+
+    def reset_to_question():
+        for widget in content_frame.winfo_children():
+            widget.destroy()
 
     estia_button = ctk.CTkButton(
         button_frame,
@@ -142,7 +165,7 @@ def open_nutrition(nutrition_frame):
         fg_color="#e0e0e0",
         hover_color="#bdbdbd",
         text_color="#000000",
-        command=lambda: scroll_to_section(canvas, scrollable_frame, "estia")
+        command=lambda: show_choice("estia")
     )
     estia_button.pack(side=ctk.LEFT, padx=20)
 
@@ -152,54 +175,89 @@ def open_nutrition(nutrition_frame):
         fg_color="#e0e0e0",
         hover_color="#bdbdbd",
         text_color="#000000",
-        command=lambda: scroll_to_section(canvas, scrollable_frame, "allou")
+        command=lambda: show_choice("allou")
     )
     allou_button.pack(side=ctk.RIGHT, padx=20)
 
-    estia_section = ctk.CTkFrame(scrollable_frame, fg_color="#f2f2f2")
-    estia_section.pack(fill=ctk.BOTH, expand=True, pady=20)
-    threading.Thread(target=show_estia, args=(estia_section,)).start()
-
-    allou_section = ctk.CTkFrame(scrollable_frame, fg_color="#f2f2f2")
-    allou_section.pack(fill=ctk.BOTH, expand=True, pady=20)
-    threading.Thread(target=show_allou, args=(allou_section,)).start()
-
-def scroll_to_section(canvas, scrollable_frame, section):
-    if section == "estia":
-        canvas.yview_moveto(scrollable_frame.winfo_children()[1].winfo_y() / scrollable_frame.winfo_height())
-    elif section == "allou":
-        canvas.yview_moveto(scrollable_frame.winfo_children()[2].winfo_y() / scrollable_frame.winfo_height())
-
 def show_estia(parent_frame):
-    square_frame = ctk.CTkFrame(parent_frame, fg_color="#f2f2f2", width=900, height=600, corner_radius=10)
+    # Zoom state
+    if not hasattr(parent_frame, '_zoom_level'):
+        parent_frame._zoom_level = 1.0
+    if not hasattr(parent_frame, '_pan_offset'):
+        parent_frame._pan_offset = None
+
+    square_frame = ctk.CTkFrame(parent_frame, fg_color="#B4D9E7", width=900, height=600, corner_radius=10)
     square_frame.pack(pady=20)
     square_frame.pack_propagate(False)
+
+    # Zoom controls
+    zoom_frame = ctk.CTkFrame(square_frame, fg_color="#B4D9E7")
+    zoom_frame.pack(pady=(10, 0))
+    ctk.CTkLabel(zoom_frame, text="Zoom:", font=("Arial", 14, "bold"), text_color="#000000").pack(side="left", padx=5)
+    def set_zoom(delta):
+        parent_frame._zoom_level = max(0.5, min(2.5, parent_frame._zoom_level + delta))
+        parent_frame._pan_offset = None  # Reset pan on zoom
+        load_pdf()  # Πρέπει να ξαναφορτώσει το pdf με νέο zoom
+    ctk.CTkButton(zoom_frame, text="-", width=30, command=lambda: set_zoom(-0.2)).pack(side="left", padx=2)
+    ctk.CTkButton(zoom_frame, text="+", width=30, command=lambda: set_zoom(0.2)).pack(side="left", padx=2)
 
     pdf_header = ctk.CTkLabel(square_frame, text="Φαγητό της εστίας", font=("Arial", 18, "bold"), text_color="#000000")
     pdf_header.pack(pady=10)
 
+    # Canvas για εμφάνιση και drag
+    canvas = ctk.CTkCanvas(square_frame, width=800, height=500, bg="#B4D9E7", highlightthickness=0)
+    canvas.pack(pady=10)
+
     pdf_url = "https://www.upatras.gr/wp-content/uploads/2024/12/%CE%A0%CE%A1%CE%9F%CE%93%CE%A1%CE%91%CE%9C%CE%9C%CE%91-%CE%A3%CE%99%CE%A4%CE%99%CE%A3%CE%97%CE%A3-%CE%99%CE%91%CE%9D%CE%9F%CE%A5%CE%91%CE%A1%CE%99%CE%9F%CE%A3-2025_compressed.pdf"
+    parent_frame._pdf_img = None
+    parent_frame._canvas_img_id = None
+
+    def render_pdf():
+        canvas.delete("all")
+        if parent_frame._pdf_img:
+            if parent_frame._pan_offset is None:
+                # Center image on first render or zoom
+                parent_frame._pan_offset = [canvas.winfo_width()//2, canvas.winfo_height()//2]
+            x, y = parent_frame._pan_offset
+            parent_frame._canvas_img_id = canvas.create_image(x, y, anchor="center", image=parent_frame._pdf_img)
 
     def load_pdf():
         try:
             response = requests.get(pdf_url)
             pdf_data = BytesIO(response.content)
             doc = fitz.open(stream=pdf_data, filetype="pdf")
-
             page = doc.load_page(0)
-            pix = page.get_pixmap()
+            zoom = parent_frame._zoom_level
+            mat = fitz.Matrix(zoom, zoom)
+            pix = page.get_pixmap(matrix=mat)
             img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
-            img = ImageTk.PhotoImage(img)
-
-            parent_frame.after(0, lambda: display_pdf(img))
+            parent_frame._pdf_img = ImageTk.PhotoImage(img)
+            parent_frame._pan_offset = None  # Center on new image
+            parent_frame.after(0, render_pdf)
         except Exception as e:
             parent_frame.after(0, lambda: messagebox.showerror("Error", f"Failed to load PDF: {e}"))
 
-    def display_pdf(img):
-        if square_frame.winfo_exists():
-            pdf_label = ctk.CTkLabel(square_frame, image=img, text="", bg_color="#f2f2f2")
-            pdf_label.image = img
-            pdf_label.pack(pady=10)
+    # Drag logic
+    drag_data = {"x": 0, "y": 0, "dragging": False}
+    def on_press(event):
+        drag_data["x"] = event.x
+        drag_data["y"] = event.y
+        drag_data["dragging"] = True
+    def on_release(event):
+        drag_data["dragging"] = False
+    def on_motion(event):
+        if drag_data["dragging"] and parent_frame._pdf_img:
+            dx = event.x - drag_data["x"]
+            dy = event.y - drag_data["y"]
+            if parent_frame._pan_offset is not None:
+                parent_frame._pan_offset[0] += dx
+                parent_frame._pan_offset[1] += dy
+                drag_data["x"] = event.x
+                drag_data["y"] = event.y
+                render_pdf()
+    canvas.bind("<ButtonPress-1>", on_press)
+    canvas.bind("<ButtonRelease-1>", on_release)
+    canvas.bind("<B1-Motion>", on_motion)
 
     threading.Thread(target=load_pdf).start()
 
