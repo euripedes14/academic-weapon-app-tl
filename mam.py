@@ -162,9 +162,6 @@ def open_nutrition(nutrition_frame):
     estia_button = ctk.CTkButton(
         button_frame,
         text="Εστία",
-        fg_color="#e0e0e0",
-        hover_color="#bdbdbd",
-        text_color="#000000",
         command=lambda: show_choice("estia")
     )
     estia_button.pack(side=ctk.LEFT, padx=20)
@@ -172,9 +169,6 @@ def open_nutrition(nutrition_frame):
     allou_button = ctk.CTkButton(
         button_frame,
         text="Αλλού",
-        fg_color="#e0e0e0",
-        hover_color="#bdbdbd",
-        text_color="#000000",
         command=lambda: show_choice("allou")
     )
     allou_button.pack(side=ctk.RIGHT, padx=20)
