@@ -4,7 +4,7 @@ from tkcalendar import Calendar
 import datetime
 from error_control import ErrorControl
 
-ctk.set_default_color_theme("themes/breeze.json")
+# ctk.set_default_color_theme("themes/breeze.json")
 
 # Custom CTk input dialog
 class CTkInputDialog(ctk.CTkToplevel):
