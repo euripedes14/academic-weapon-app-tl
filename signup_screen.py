@@ -1,7 +1,10 @@
 from login_signup_basescreen import BaseScreen
 import customtkinter as ctk
 from CTkMessagebox import CTkMessagebox
-from database_drop import create_database, create_tables, insert_user
+import os
+import json
+
+ctk.set_default_color_theme("themes/breeze.json")
 
 
 # Example for signup_screen.py
@@ -75,19 +78,41 @@ class SignUpScreen(BaseScreen):
             CTkMessagebox(title="Sign Up Failed", message="Passwords do not match.", icon="cancel")
             return
 
-        conn = create_database()
-        create_tables(conn)
-        try:
-            insert_user(conn, username, password, email, pronouns)
-            CTkMessagebox(title="Sign Up Success", message="Account created successfully!", icon="check")
-            self.open_login()
-        except Exception as e:
-            CTkMessagebox(title="Sign Up Failed", message=f"Error: {e}", icon="cancel")
-        finally:
-            conn.close()
+        # Έλεγχος μοναδικότητας username στο settings.json
+        settings_file = "settings.json"
+        if os.path.exists(settings_file):
+            with open(settings_file, "r", encoding="utf-8") as f:
+                settings_data = json.load(f)
+            if username in settings_data:
+                CTkMessagebox(title="Sign Up Failed", message="Το username υπάρχει ήδη.", icon="cancel")
+                return
+        else:
+            settings_data = {}
+
+        # Αποθήκευση όλων των πληροφοριών στο settings.json
+        settings_data[username] = {
+            "profile": {
+                "username": username,
+                "pronouns": pronouns
+            },
+            "account": {
+                "email": email,
+                "password": password
+            }
+        }
+        with open(settings_file, "w", encoding="utf-8") as f:
+            json.dump(settings_data, f, ensure_ascii=False, indent=2)
+        CTkMessagebox(title="Sign Up Success", message="Account created successfully!", icon="check")
+        self.open_login()
 
     def open_login(self):
-        self.main_frame.destroy()  # Destroy only the frame, not the root
+        self.main_frame.after(100, self.safe_open_login)
+
+    def safe_open_login(self):
+        try:
+            self.main_frame.destroy()  # Destroy only the frame, not the root
+        except Exception:
+            pass
         from login import LoginScreen
         LoginScreen(self.root)
 

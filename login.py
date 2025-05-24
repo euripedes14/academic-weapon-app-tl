@@ -1,12 +1,8 @@
 import customtkinter as ctk
 from login_signup_basescreen import BaseScreen
 from CTkMessagebox import CTkMessagebox
-from database_drop import create_database, create_tables, check_user_credentials
-
-# Εφαρμογή breeze theme σε όλα τα CTk widgets
-ctk.set_default_color_theme("themes/breeze.json")
-ctk.set_appearance_mode("light")
-
+import os
+import json
 
 class LoginScreen(BaseScreen):
     def __init__(self, root):
@@ -36,16 +32,27 @@ class LoginScreen(BaseScreen):
     def login(self):
         username = self.username_entry.get()
         password = self.password_entry.get()
-        conn = create_database() # Ensure the database is created
-        create_tables(conn) # Ensure the tables are created
-        # Check user credentials
-        if check_user_credentials(conn, username, password):
-            self.root.destroy()
-            from navigation import main_app
-            main_app()
-        else:
-            CTkMessagebox(title="Login Failed", message="Invalid username or password.")
-        conn.close()
+        # Έλεγχος ύπαρξης και password στο settings.json
+        settings_file = "settings.json"
+        user_exists = False
+        password_ok = False
+        if os.path.exists(settings_file):
+            with open(settings_file, "r", encoding="utf-8") as f:
+                settings_data = json.load(f)
+            if username in settings_data:
+                user_exists = True
+                user_account = settings_data[username].get("account", {})
+                if user_account.get("password") == password:
+                    password_ok = True
+        if not user_exists:
+            CTkMessagebox(title="Login Failed", message="Το username δεν υπάρχει.")
+            return
+        if not password_ok:
+            CTkMessagebox(title="Login Failed", message="Λάθος κωδικός.")
+            return
+        self.root.destroy()
+        from navigation import main_app
+        main_app(username=username)
 
     def open_signup(self):
         self.main_frame.destroy()
