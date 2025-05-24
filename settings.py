@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 
 # Εφαρμογή του breeze theme σε όλα τα στοιχεία
-ctk.set_default_color_theme("themes/breeze.json")
+# ctk.set_default_color_theme("themes/breeze.json")
 
 
 class SettingsMenuApp:
