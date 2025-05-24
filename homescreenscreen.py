@@ -5,7 +5,7 @@ import customtkinter as ctk
 import random
 
 # Εφαρμογή breeze theme σε όλα τα CTk widgets
-ctk.set_default_color_theme("themes/breeze.json")
+# ctk.set_default_color_theme("themes/breeze.json")
 
 funfacts = [
     "Some squirrels can fly",
