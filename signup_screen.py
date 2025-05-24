@@ -4,7 +4,7 @@ from CTkMessagebox import CTkMessagebox
 import os
 import json
 
-ctk.set_default_color_theme("themes/breeze.json")
+# ctk.set_default_color_theme("themes/breeze.json")
 
 
 # Example for signup_screen.py
