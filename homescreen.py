@@ -121,6 +121,12 @@ class HomeScreen:
 if __name__ == "__main__":
     root = ctk.CTk()
     app = HomeScreen(root)
+    # Εφαρμογή breeze theme και εμφάνιση light mode για συνέπεια
+    # Set 4:3 aspect ratio (e.g., 800x600)
+    root.geometry("800x600")
+    app_frame = ctk.CTkFrame(root)
+    app_frame.pack(expand=True, fill="both")
+
     root.mainloop()
     # Εφαρμογή breeze theme και εμφάνιση light mode για συνέπεια
     ctk.set_default_color_theme("themes/breeze.json")

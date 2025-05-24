@@ -1,5 +1,5 @@
-import tkinter as tk
-from tkinter import ttk, messagebox, filedialog
+import customtkinter as ctk
+from tkinter import messagebox, filedialog, ttk  # Add ttk to the import
 from tkcalendar import Calendar, DateEntry  # Import tkcalendar for date selection
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -11,138 +11,92 @@ import os
 from PIL import Image, ImageDraw, ImageFont
 import io
 
+# Set CTk theme and appearance
+ctk.set_appearance_mode("light")
+# ctk.set_default_color_theme("themes/breeze.json")  # Uncomment if you use a custom theme
+
 class ExpenseTrackerApp:
     def __init__(self, parent_frame):
         """Initialize the Expense Tracker app in the given parent frame."""
         self.parent_frame = parent_frame
-        self.transactions = []  # Store transactions
-        self.categories = ["Ταξίδια", "Σούπερ Μάρκετ", "Ενοίκιο", "Λογαριασμοί", "Καφές", "Έξοδοι"]  
-        self.selected_month = datetime.now().month  
-        self.selected_year = datetime.now().year  
-        self.future_spendings = []  # Store future spendings
-        self.repeating_spendings = []  # Store repeating spendings
-        self.supermarket_items = []  # Store supermarket items
+        self.transactions = []
+        self.categories = ["Ταξίδια", "Σούπερ Μάρκετ", "Ενοίκιο", "Λογαριασμοί", "Καφές", "Έξοδοι"]
+        self.selected_month = datetime.now().month
+        self.selected_year = datetime.now().year
+        self.future_spendings = []
+        self.repeating_spendings = []
+        self.supermarket_items = []
 
-        # Create notebook (tabs) - removed summary tab
-        self.notebook = ttk.Notebook(parent_frame)
-        self.transactions_frame = tk.Frame(self.notebook, bg="#f2f2f2")
-        self.overview_frame = tk.Frame(self.notebook, bg="#f2f2f2")
-        # Removed summary_frame
-        self.future_repeating_frame = tk.Frame(self.notebook, bg="#f2f2f2")  # Add Future/Repeating tab
-        
-        self.notebook.add(self.transactions_frame, text="Transactions")
-        self.notebook.add(self.overview_frame, text="Overview")
-        # Removed summary tab addition
-        self.notebook.add(self.future_repeating_frame, text="Future/Repeating")
-        self.notebook.pack(expand=True, fill="both")
+        # Create notebook (tabs)
+        self.notebook = ctk.CTkTabview(parent_frame)
+        self.transactions_frame = self.notebook.add("Transactions")
+        self.overview_frame = self.notebook.add("Overview")
+        self.future_repeating_frame = self.notebook.add("Future/Repeating")
+        self.notebook.pack(expand=True, fill="both", pady=(40, 0))  # Increased top padding
 
         # Create a menu frame at the bottom
-        self.menu_frame = tk.Frame(parent_frame, bg="#e6e6e6", height=50)
+        self.menu_frame = ctk.CTkFrame(parent_frame, fg_color="#e6e6e6", height=50)
         self.menu_frame.pack(side="bottom", fill="x")
-
-        # Add "Add Category" button to the menu
-        add_category_button = tk.Button(self.menu_frame, text="Προσθήκη Κατηγορίας", command=self.open_add_category_popup, bg="#5cb85c", fg="white")
-        add_category_button.pack(side="left", padx=10, pady=10)
 
         self.create_transactions_tab()
         self.create_overview_tab()
-        # Removed create_summary_tab() call
         self.create_future_repeating_tab()
         self.supermarket_table.bind("<Double-1>", self.toggle_supermarket_item)
 
-        # Add styling for the supermarket list items
-        self.style = ttk.Style()
-        self.style.configure("Treeview", font=("Arial", 10), rowheight=25)
-        self.style.configure("Treeview.Heading", font=("Arial", 10, "bold"))
-        self.style.map('Treeview', foreground=[('disabled', 'gray')])
-        self.supermarket_table.tag_configure('purchased', foreground='gray', font=('Arial', 10, 'overstrike'))
-        self.supermarket_table.tag_configure('unpurchased', foreground='black', font=('Arial', 10))
-    
     def create_transactions_tab(self):
-        tk.Label(self.transactions_frame, text="Προσθήκη Εξόδων", font=("Arial", 14), bg="#f2f2f2").pack(pady=10)
-        
-        tk.Label(self.transactions_frame, text="Κατηγορία:", bg="#f2f2f2").pack()
-        self.category_var = tk.StringVar(value=self.categories[0])  # Default to the first category
-        self.category_dropdown = ttk.Combobox(self.transactions_frame, textvariable=self.category_var, values=self.categories, state="readonly")
+        ctk.CTkLabel(self.transactions_frame, text="Προσθήκη Εξόδων", font=("Arial", 14)).pack(pady=10)
+
+        ctk.CTkLabel(self.transactions_frame, text="Κατηγορία:").pack()
+        self.category_var = ctk.StringVar(value=self.categories[0])
+        self.category_dropdown = ctk.CTkComboBox(self.transactions_frame, variable=self.category_var, values=self.categories, state="readonly")
         self.category_dropdown.pack(pady=5)
 
-        tk.Label(self.transactions_frame, text="Ποσό:", bg="#f2f2f2").pack()
-        self.amount_entry = tk.Entry(self.transactions_frame)
+        ctk.CTkLabel(self.transactions_frame, text="Ποσό:").pack()
+        self.amount_entry = ctk.CTkEntry(self.transactions_frame)
         self.amount_entry.pack(pady=5)
-        
-        tk.Label(self.transactions_frame, text="Ημερομηνία:", bg="#f2f2f2").pack()
+
+        ctk.CTkLabel(self.transactions_frame, text="Ημερομηνία:").pack()
         self.date_entry = DateEntry(self.transactions_frame, width=12, background='darkblue', foreground='white', borderwidth=2)
         self.date_entry.pack(pady=5)
-        
-        add_button = tk.Button(self.transactions_frame, text="Προσθήκη", command=self.add_transaction, bg="#d9534f", fg="white")
+
+        add_button = ctk.CTkButton(self.transactions_frame, text="Προσθήκη", command=self.add_transaction, fg_color="#d9534f", text_color="white")
         add_button.pack(pady=10)
-        
-        self.transaction_listbox = tk.Listbox(self.transactions_frame, width=50, height=10)
+
+        self.transaction_listbox = ctk.CTkTextbox(self.transactions_frame, width=400, height=200)
         self.transaction_listbox.pack(pady=10)
-    
-    def open_add_category_popup(self):
-        """Open a popup window to add a new category."""
-        popup = tk.Toplevel(self.parent_frame)
-        popup.title("Προσθήκη Νέας Κατηγορίας")
-        popup.geometry("300x150")
 
-        tk.Label(popup, text="Εισαγωγή Νέας Κατηγορίας:", font=("Arial", 12)).pack(pady=10)
-        new_category_entry = tk.Entry(popup)
-        new_category_entry.pack(pady=5)
-
-        def add_category():
-            new_category = new_category_entry.get().strip()
-            if new_category and new_category not in self.categories:
-                self.categories.append(new_category)
-                self.category_dropdown['values'] = self.categories  # Update dropdown values
-                popup.destroy()
-
-        add_button = tk.Button(popup, text="Προσθήκη", command=add_category, bg="#5cb85c", fg="white")
-        add_button.pack(pady=10)
-    
     def add_transaction(self):
-        category = self.category_var.get()  # Get selected category from dropdown
+        category = self.category_var.get()
         amount = self.amount_entry.get()
-        date = self.date_entry.get()  # DateEntry returns date in "MM/DD/YY" format by default
-
+        date = self.date_entry.get()
         try:
-            # Convert the date to a consistent format (YYYY-MM-DD)
             formatted_date = datetime.strptime(date, "%m/%d/%y").strftime("%Y-%m-%d")
             if category and amount and formatted_date:
-                transaction_text = f"{formatted_date} - {category}: {amount}€"
-                self.transactions.append((category, float(amount), formatted_date))  # Store formatted date
-                self.transaction_listbox.insert(tk.END, transaction_text)
-
-                self.amount_entry.delete(0, tk.END)
+                transaction_text = f"{formatted_date} - {category}: {amount}€\n"
+                self.transactions.append((category, float(amount), formatted_date))
+                self.transaction_listbox.insert("end", transaction_text)
+                self.amount_entry.delete(0, "end")
                 self.update_pie_chart()
-                # Removed update_summary_chart() call
         except ValueError:
             messagebox.showerror("Invalid Date", "The date format is invalid. Please select a valid date.")
-    
+
     def create_overview_tab(self):
-        # Remove filter controls and labels
-        # ...existing code...
-        self.chart_frame = tk.Frame(self.overview_frame, bg="#f2f2f2")
+        self.chart_frame = ctk.CTkFrame(self.overview_frame)
         self.chart_frame.pack(expand=True, fill="both")
         self.update_pie_chart()
-    
+
     def update_pie_chart(self):
-        """Update the pie chart to display spendings for the selected time period."""
         for widget in self.chart_frame.winfo_children():
             widget.destroy()
         current_date = datetime.now()
-
-        # Filter last month transactions
         filtered_month = [
             (cat, amt) for cat, amt, d in self.transactions
             if 0 <= (current_date - datetime.strptime(d, "%Y-%m-%d")).days <= 30
         ]
-        # Filter last year transactions
         filtered_year = [
             (cat, amt) for cat, amt, d in self.transactions
             if 0 <= (current_date - datetime.strptime(d, "%Y-%m-%d")).days <= 365
         ]
-
         def get_category_totals(transactions):
             cats = {}
             for c, a in transactions:
@@ -158,150 +112,74 @@ class ExpenseTrackerApp:
             if small_sum > 0:
                 significant["Λοιπά έξοδα"] = significant.get("Λοιπά έξοδα", 0) + small_sum
             return significant
-
         month_totals = get_category_totals(filtered_month)
         year_totals = get_category_totals(filtered_year)
-
+        # Show a message if there is no data for either period
         if not month_totals and not year_totals:
-            tk.Label(self.chart_frame, text="Δεν υπάρχουν έξοδα για τις επιλεγμένες περιόδους", 
-                     font=("Arial", 14), bg="#f2f2f2").pack()
+            ctk.CTkLabel(self.chart_frame, text="Δεν υπάρχουν έξοδα για τον μήνα ή το έτος.", font=("Arial", 14)).pack(pady=40)
             return
-
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 4))
         fig.tight_layout(pad=3)
-
-        # Pie chart for last month
         if month_totals:
             labels_month = list(month_totals.keys())
             values_month = list(month_totals.values())
-            ax1.pie(values_month, labels=labels_month, autopct='%1.1f%%', 
-                    colors=plt.cm.tab20.colors[:len(labels_month)])
+            ax1.pie(values_month, labels=labels_month, autopct='%1.1f%%', colors=plt.cm.tab20.colors[:len(labels_month)])
             ax1.set_title("Έξοδα Τελευταίου Μήνα")
-
-        # Pie chart for last year
+        else:
+            ax1.axis('off')
+            ax1.text(0.5, 0.5, "Δεν υπάρχουν έξοδα\nγια τον μήνα", ha='center', va='center', fontsize=12)
         if year_totals:
             labels_year = list(year_totals.keys())
             values_year = list(year_totals.values())
-            ax2.pie(values_year, labels=labels_year, autopct='%1.1f%%', 
-                    colors=plt.cm.tab20.colors[:len(labels_year)])
+            ax2.pie(values_year, labels=labels_year, autopct='%1.1f%%', colors=plt.cm.tab20.colors[:len(labels_year)])
             ax2.set_title("Έξοδα Τελευταίου Έτους")
-
+        else:
+            ax2.axis('off')
+            ax2.text(0.5, 0.5, "Δεν υπάρχουν έξοδα\nγια το έτος", ha='center', va='center', fontsize=12)
         canvas = FigureCanvasTkAgg(fig, master=self.chart_frame)
         canvas.get_tk_widget().pack()
         canvas.draw()
 
     def create_future_repeating_tab(self):
-        """Create the Future/Repeating Spendings tab with side-by-side layout."""
-        # Main header
-        tk.Label(self.future_repeating_frame, text="Διαχείριση Μελλοντικών και Επαναλαμβανόμενων Εξόδων", 
-                font=("Arial", 14), bg="#f2f2f2").pack(pady=10)
-        
-        # Create main container for the split layout
-        main_container = tk.Frame(self.future_repeating_frame, bg="#f2f2f2")
+        ctk.CTkLabel(self.future_repeating_frame, text="Διαχείριση Μελλοντικών και Επαναλαμβανόμενων Εξόδων", font=("Arial", 14)).pack(pady=10)
+        main_container = ctk.CTkFrame(self.future_repeating_frame)
         main_container.pack(fill="both", expand=True, padx=5, pady=5)
-        
-        # Left frame for expenses sections
-        left_frame = tk.Frame(main_container, bg="#f2f2f2", borderwidth=1, relief="groove")
+        left_frame = ctk.CTkFrame(main_container)
         left_frame.pack(side="left", fill="both", expand=True, padx=(0, 5))
-        
-        # Right frame for supermarket list
-        right_frame = tk.Frame(main_container, bg="#f2f2f2", borderwidth=1, relief="groove")
+        right_frame = ctk.CTkFrame(main_container)
         right_frame.pack(side="right", fill="both", expand=True, padx=(5, 0))
-        
-        # === LEFT SIDE: EXPENSES ===
-        
-        # Future Spendings Section
-        tk.Label(left_frame, text="Μελλοντικά Έξοδα", font=("Arial", 12, "bold"), 
-                bg="#f2f2f2", fg="#3498db").pack(pady=(10, 5))
-        
-        future_list_frame = tk.Frame(left_frame, bg="#f2f2f2")
+        ctk.CTkLabel(left_frame, text="Μελλοντικά Έξοδα", font=("Arial", 12, "bold"), text_color="#3498db").pack(pady=(10, 5))
+        future_list_frame = ctk.CTkFrame(left_frame)
         future_list_frame.pack(fill="both", expand=True, padx=10, pady=5)
-        
-        self.future_listbox = tk.Listbox(future_list_frame, width=40, height=8, 
-                                        font=("Arial", 10), bg="white", selectbackground="#3498db")
+        self.future_listbox = ctk.CTkTextbox(future_list_frame, width=300, height=150)
         self.future_listbox.pack(side="left", fill="both", expand=True)
-        
-        future_scrollbar = ttk.Scrollbar(future_list_frame, orient="vertical", 
-                                        command=self.future_listbox.yview)
-        self.future_listbox.configure(yscrollcommand=future_scrollbar.set)
-        future_scrollbar.pack(side="right", fill="y")
-        
-        tk.Button(left_frame, text="Προσθήκη Μελλοντικού Εξόδου", 
-                command=self.open_add_future_popup, bg="#5cb85c", fg="white",
-                relief="flat", padx=10, pady=5).pack(pady=10)
-        
-        # Repeating Spendings Section
-        tk.Label(left_frame, text="Επαναλαμβανόμενα Έξοδα", font=("Arial", 12, "bold"), 
-                bg="#f2f2f2", fg="#3498db").pack(pady=(10, 5))
-        
-        repeating_list_frame = tk.Frame(left_frame, bg="#f2f2f2")
+        ctk.CTkButton(left_frame, text="Προσθήκη Μελλοντικού Εξόδου", command=self.open_add_future_popup, fg_color="#5cb85c", text_color="white").pack(pady=10)
+        ctk.CTkLabel(left_frame, text="Επαναλαμβανόμενα Έξοδα", font=("Arial", 12, "bold"), text_color="#3498db").pack(pady=(10, 5))
+        repeating_list_frame = ctk.CTkFrame(left_frame)
         repeating_list_frame.pack(fill="both", expand=True, padx=10, pady=5)
-        
-        self.repeating_listbox = tk.Listbox(repeating_list_frame, width=40, height=8, 
-                                            font=("Arial", 10), bg="white", selectbackground="#3498db")
+        self.repeating_listbox = ctk.CTkTextbox(repeating_list_frame, width=300, height=150)
         self.repeating_listbox.pack(side="left", fill="both", expand=True)
-        
-        repeating_scrollbar = ttk.Scrollbar(repeating_list_frame, orient="vertical", 
-                                            command=self.repeating_listbox.yview)
-        self.repeating_listbox.configure(yscrollcommand=repeating_scrollbar.set)
-        repeating_scrollbar.pack(side="right", fill="y")
-        
-        tk.Button(left_frame, text="Προσθήκη Επαναλαμβανόμενου Εξόδου", 
-                command=self.open_add_repeating_popup, bg="#5cb85c", fg="white",
-                relief="flat", padx=10, pady=5).pack(pady=(10, 15))
-        
-        # === RIGHT SIDE: SUPERMARKET LIST ===
-        
-        tk.Label(right_frame, text="Λίστα Σούπερ Μάρκετ", font=("Arial", 12, "bold"), 
-                bg="#f2f2f2", fg="#3498db").pack(pady=(10, 5))
-        
-        # Create custom frame for the shopping list with improved styling
-        self.supermarket_frame = tk.Frame(right_frame, bg="#f2f2f2")
+        ctk.CTkButton(left_frame, text="Προσθήκη Επαναλαμβανόμενου Εξόδου", command=self.open_add_repeating_popup, fg_color="#5cb85c", text_color="white").pack(pady=(10, 15))
+        ctk.CTkLabel(right_frame, text="Λίστα Σούπερ Μάρκετ", font=("Arial", 12, "bold"), text_color="#3498db").pack(pady=(10, 5))
+        self.supermarket_frame = ctk.CTkFrame(right_frame)
         self.supermarket_frame.pack(fill="both", expand=True, padx=10, pady=10)
-        
-        # Create columns with headings
         columns = ("Item", "Purchased")
-        self.supermarket_table = ttk.Treeview(self.supermarket_frame, columns=columns,
-                                            show="headings", height=16)
-        
-        # Configure columns and headings
+        self.supermarket_table = ttk.Treeview(self.supermarket_frame, columns=columns, show="headings", height=16)  # Use ttk.Treeview
         self.supermarket_table.heading("Item", text="Προϊόν")
         self.supermarket_table.heading("Purchased", text="Κατάσταση")
         self.supermarket_table.column("Item", width=200, anchor="w")
         self.supermarket_table.column("Purchased", width=100, anchor="center")
-        
-        # Add a scrollbar
-        scrollbar = ttk.Scrollbar(self.supermarket_frame, orient="vertical", command=self.supermarket_table.yview)
-        self.supermarket_table.configure(yscrollcommand=scrollbar.set)
-        
-        # Pack the table and scrollbar
         self.supermarket_table.pack(side="left", fill="both", expand=True)
-        scrollbar.pack(side="right", fill="y")
-        
-        # Controls for supermarket list
-        controls_frame = tk.Frame(right_frame, bg="#f2f2f2")
+        controls_frame = ctk.CTkFrame(right_frame)
         controls_frame.pack(fill="x", padx=10, pady=10)
-        
-        tk.Button(controls_frame, text="Προσθήκη Προϊόντος", command=self.open_add_supermarket_item_popup, 
-                bg="#5cb85c", fg="white", relief="flat", padx=10, pady=5).pack(side="left", padx=(0, 5))
-        
-        tk.Button(controls_frame, text="Αλλαγή Κατάστασης", command=self.toggle_selected_item, 
-                bg="#3498db", fg="white", relief="flat", padx=10, pady=5).pack(side="left", padx=5)
-        
-        tk.Button(controls_frame, text="Διαγραφή", command=self.remove_supermarket_item, 
-                bg="#e74c3c", fg="white", relief="flat", padx=10, pady=5).pack(side="right", padx=(5, 0))
-
-        # Export options frame
-        export_frame = tk.Frame(right_frame, bg="#f2f2f2")
+        ctk.CTkButton(controls_frame, text="Προσθήκη Προϊόντος", command=self.open_add_supermarket_item_popup, fg_color="#5cb85c", text_color="white").pack(side="left", padx=(0, 5))
+        ctk.CTkButton(controls_frame, text="Αλλαγή Κατάστασης", command=self.toggle_selected_item, fg_color="#3498db", text_color="white").pack(side="left", padx=5)
+        ctk.CTkButton(controls_frame, text="Διαγραφή", command=self.remove_supermarket_item, fg_color="#e74c3c", text_color="white").pack(side="right", padx=(5, 0))
+        export_frame = ctk.CTkFrame(right_frame)
         export_frame.pack(fill="x", padx=10, pady=(0, 10))
-        
-        tk.Label(export_frame, text="Εξαγωγή λίστας:", bg="#f2f2f2").pack(side="left", padx=(0, 5))
-        
-        tk.Button(export_frame, text="CSV", command=self.export_to_csv, 
-                bg="#9b59b6", fg="white", relief="flat", padx=10, pady=3).pack(side="left", padx=5)
-        
-        tk.Button(export_frame, text="JPG", command=self.export_to_jpg, 
-                bg="#9b59b6", fg="white", relief="flat", padx=10, pady=3).pack(side="left", padx=5)
+        ctk.CTkLabel(export_frame, text="Εξαγωγή λίστας:").pack(side="left", padx=(0, 5))
+        ctk.CTkButton(export_frame, text="CSV", command=self.export_to_csv, fg_color="#9b59b6", text_color="white").pack(side="left", padx=5)
+        ctk.CTkButton(export_frame, text="JPG", command=self.export_to_jpg, fg_color="#9b59b6", text_color="white").pack(side="left", padx=5)
 
     def toggle_selected_item(self):
         """Toggle the purchased status of the selected supermarket item."""
@@ -425,20 +303,20 @@ class ExpenseTrackerApp:
 
     def open_add_future_popup(self):
         """Open a popup window to add a new future spending."""
-        popup = tk.Toplevel(self.parent_frame)
+        popup = ctk.CTkToplevel(self.parent_frame)
         popup.title("Προσθήκη Μελλοντικού Εξόδου")
         popup.geometry("300x200")
 
-        tk.Label(popup, text="Κατηγορία:", font=("Arial", 12)).pack(pady=5)
-        category_var = tk.StringVar(value=self.categories[0])
-        category_dropdown = ttk.Combobox(popup, textvariable=category_var, values=self.categories, state="readonly")
+        ctk.CTkLabel(popup, text="Κατηγορία:", font=("Arial", 12)).pack(pady=5)
+        category_var = ctk.StringVar(value=self.categories[0])
+        category_dropdown = ctk.CTkComboBox(popup, variable=category_var, values=self.categories, state="readonly")
         category_dropdown.pack(pady=5)
 
-        tk.Label(popup, text="Ποσό:", font=("Arial", 12)).pack(pady=5)
-        amount_entry = tk.Entry(popup)
+        ctk.CTkLabel(popup, text="Ποσό:", font=("Arial", 12)).pack(pady=5)
+        amount_entry = ctk.CTkEntry(popup)
         amount_entry.pack(pady=5)
 
-        tk.Label(popup, text="Ημερομηνία:", font=("Arial", 12)).pack(pady=5)
+        ctk.CTkLabel(popup, text="Ημερομηνία:", font=("Arial", 12)).pack(pady=5)
         date_entry = DateEntry(popup, width=12, background='darkblue', foreground='white', borderwidth=2)
         date_entry.pack(pady=5)
 
@@ -451,30 +329,30 @@ class ExpenseTrackerApp:
                 formatted_date = datetime.strptime(date, "%m/%d/%y").strftime("%Y-%m-%d")
                 if category and amount and formatted_date:
                     self.future_spendings.append((category, float(amount), formatted_date))
-                    self.future_listbox.insert(tk.END, f"{formatted_date} - {category}: {amount}€")
+                    self.future_listbox.insert("end", f"{formatted_date} - {category}: {amount}€")
                     popup.destroy()
             except ValueError:
                 messagebox.showerror("Invalid Input", "Please enter valid data.")
 
-        tk.Button(popup, text="Προσθήκη", command=add_future_spending, bg="#5cb85c", fg="white").pack(pady=10)
+        ctk.CTkButton(popup, text="Προσθήκη", command=add_future_spending, fg_color="#5cb85c", text_color="white").pack(pady=10)
 
     def open_add_repeating_popup(self):
         """Open a popup window to add a new repeating spending."""
-        popup = tk.Toplevel(self.parent_frame)
+        popup = ctk.CTkToplevel(self.parent_frame)
         popup.title("Προσθήκη Επαναλαμβανόμενου Εξόδου")
         popup.geometry("300x250")
 
-        tk.Label(popup, text="Κατηγορία:", font=("Arial", 12)).pack(pady=5)
-        category_var = tk.StringVar(value=self.categories[0])
-        category_dropdown = ttk.Combobox(popup, textvariable=category_var, values=self.categories, state="readonly")
+        ctk.CTkLabel(popup, text="Κατηγορία:", font=("Arial", 12)).pack(pady=5)
+        category_var = ctk.StringVar(value=self.categories[0])
+        category_dropdown = ctk.CTkComboBox(popup, variable=category_var, values=self.categories, state="readonly")
         category_dropdown.pack(pady=5)
 
-        tk.Label(popup, text="Ποσό:", font=("Arial", 12)).pack(pady=5)
-        amount_entry = tk.Entry(popup)
+        ctk.CTkLabel(popup, text="Ποσό:", font=("Arial", 12)).pack(pady=5)
+        amount_entry = ctk.CTkEntry(popup)
         amount_entry.pack(pady=5)
 
-        tk.Label(popup, text="Συχνότητα (σε ημέρες):", font=("Arial", 12)).pack(pady=5)
-        frequency_entry = tk.Entry(popup)
+        ctk.CTkLabel(popup, text="Συχνότητα (σε ημέρες):", font=("Arial", 12)).pack(pady=5)
+        frequency_entry = ctk.CTkEntry(popup)
         frequency_entry.pack(pady=5)
 
         def add_repeating_spending():
@@ -485,21 +363,21 @@ class ExpenseTrackerApp:
             try:
                 if category and amount and frequency.isdigit():
                     self.repeating_spendings.append((category, float(amount), int(frequency)))
-                    self.repeating_listbox.insert(tk.END, f"{category}: {amount}€ κάθε {frequency} ημέρες")
+                    self.repeating_listbox.insert("end", f"{category}: {amount}€ κάθε {frequency} ημέρες")
                     popup.destroy()
             except ValueError:
                 messagebox.showerror("Invalid Input", "Please enter valid data.")
 
-        tk.Button(popup, text="Προσθήκη", command=add_repeating_spending, bg="#5cb85c", fg="white").pack(pady=10)
+        ctk.CTkButton(popup, text="Προσθήκη", command=add_repeating_spending, fg_color="#5cb85c", text_color="white").pack(pady=10)
 
     def open_add_supermarket_item_popup(self):
         """Open a popup window to add a new supermarket item."""
-        popup = tk.Toplevel(self.parent_frame)
+        popup = ctk.CTkToplevel(self.parent_frame)
         popup.title("Προσθήκη Προϊόντος")
         popup.geometry("300x150")
 
-        tk.Label(popup, text="Όνομα Προϊόντος:", font=("Arial", 12)).pack(pady=10)
-        item_entry = tk.Entry(popup)
+        ctk.CTkLabel(popup, text="Όνομα Προϊόντος:", font=("Arial", 12)).pack(pady=10)
+        item_entry = ctk.CTkEntry(popup)
         item_entry.pack(pady=5)
 
         def add_supermarket_item():
@@ -509,7 +387,7 @@ class ExpenseTrackerApp:
                 self.supermarket_table.insert("", "end", values=(item_name, "Όχι"))
                 popup.destroy()
 
-        tk.Button(popup, text="Προσθήκη", command=add_supermarket_item, bg="#5cb85c", fg="white").pack(pady=10)
+        ctk.CTkButton(popup, text="Προσθήκη", command=add_supermarket_item, fg_color="#5cb85c", text_color="white").pack(pady=10)
 
     def toggle_supermarket_item(self, event):
         """Toggle the purchased status of a supermarket item."""
@@ -521,10 +399,10 @@ class ExpenseTrackerApp:
             self.supermarket_table.item(selected_item, values=(self.supermarket_items[item_index]["item"], purchased_status))
 
 if __name__ == "__main__":
-    root = tk.Tk()
+    root = ctk.CTk()
     root.title("Expense Tracker")
     root.geometry("400x500")
-    app_frame = tk.Frame(root)
+    app_frame = ctk.CTkFrame(root)
     app_frame.pack(expand=True, fill="both")
     app = ExpenseTrackerApp(app_frame)
     root.mainloop()
