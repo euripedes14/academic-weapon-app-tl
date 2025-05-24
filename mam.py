@@ -10,7 +10,7 @@ from map_search import MapSearch
 import threading
 
 # Εφαρμογή breeze theme σε όλα τα CTk widgets
-ctk.set_default_color_theme("themes/breeze.json")
+# ctk.set_default_color_theme("themes/breeze.json")
 
 MENU = {
     "Δευτέρα": ["Κοτόπουλο με ρύζι", "Σαλάτα", "Γιαούρτι"],
