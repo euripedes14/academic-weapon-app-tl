@@ -3,6 +3,7 @@ import tkinter as tk
 from tkinter import messagebox, ttk
 import customtkinter as ctk
 import random
+from datetime import datetime
 
 # Εφαρμογή breeze theme σε όλα τα CTk widgets
 # ctk.set_default_color_theme("themes/breeze.json")
@@ -43,6 +44,29 @@ class HomeScreenScreen:
             container,
             text="\nΣήμερα η εστία έχει:",
             font=('Arial', 20),
+            anchor="n",
+            pady=5
+        ).pack()
+
+        day_of_week = datetime.now().strftime("%A")
+
+        menu = {
+            "Monday": ["Κοτόπουλο με ρύζι", "Σαλάτα", "Γιαούρτι"],
+            "Tuesday": ["Μακαρόνια με κιμά", "Τυρί φέτα", "Φρούτο"],
+            "Wednesday": ["Φασολάκια", "Ψωμί", "Μήλο"],
+            "Thursday": ["Μπιφτέκια", "Πατάτες φούρνου", "Γιαούρτι"],
+            "Friday": ["Ψάρι", "Χόρτα", "Πορτοκάλι"],
+            "Saturday": ["Γεμιστά", "Φέτα", "Φρούτο"],
+            "Sunday": ["Κοτόπουλο με πατάτες", "Σαλάτα", "Γλυκό"]
+        }
+
+        today_menu = menu.get(day_of_week, ["Δεν υπάρχει διαθέσιμο μενού"])
+        menu_text = "\n".join(today_menu)
+
+        ctk.CTkLabel(
+            container,
+            text=menu_text,
+            font=('Arial', 18),
             anchor="n",
             pady=5
         ).pack()

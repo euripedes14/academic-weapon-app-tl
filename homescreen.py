@@ -80,6 +80,7 @@ class HomeScreen:
 
     def open_homescreen(self):
         self.clear_content()
+        self.root.state("zoomed")
         homescreen_screen = HomeScreenScreen(self.content_frame)
         homescreen_screen.display()
 
@@ -120,12 +121,14 @@ class HomeScreen:
 
 if __name__ == "__main__":
     root = ctk.CTk()
+
+    root.state("zoomed")  # Try to maximize (works on most Windows)
     app = HomeScreen(root)
-    # Εφαρμογή breeze theme και εμφάνιση light mode για συνέπεια
+    root.attributes("-fullscreen", True)
     # Set 4:3 aspect ratio (e.g., 800x600)
-    root.geometry("800x600")
-    app_frame = ctk.CTkFrame(root)
-    app_frame.pack(expand=True, fill="both")
+    # root.geometry("800x600")
+    # app_frame = ctk.CTkFrame(root)
+    # app_frame.pack(expand=True, fill="both")
 
     ctk.set_appearance_mode("light")
     root.mainloop()
