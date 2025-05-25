@@ -44,7 +44,18 @@ class ScheduleScreen(ctk.CTkFrame):
         super().__init__(parent, fg_color="#f2f2f2", corner_radius=10)
         self.pack(fill="both", expand=True)
         self.events = []
+        self.load_events_from_file()  # <-- Load events at startup
 
+    def load_events_from_file(self):
+        try:
+            with open("events.txt", "r", encoding="utf-8") as f:
+                for line in f:
+                    parts = line.strip().split("|")
+                    if len(parts) == 3:
+                        self.events.append(tuple(parts))
+        except FileNotFoundError:
+            pass
+        
         # Use grid for precise sizing
         self.columnconfigure(0, weight=1, uniform="group1")
         self.columnconfigure(1, weight=2, uniform="group1")  # Calendar gets double space
@@ -97,8 +108,25 @@ class ScheduleScreen(ctk.CTkFrame):
 
     def update_event_lists(self):        
         today = datetime.datetime.now().date()
-        past_events = [event for event in self.events if datetime.datetime.strptime(event[0], "%m/%d/%y").date() < today]
-        upcoming_events = [event for event in self.events if datetime.datetime.strptime(event[0], "%m/%d/%y").date() >= today]
+        past_events = []
+        upcoming_events = []
+
+        for event in self.events:
+            date_str = event[0]
+            # Try both formats
+            for fmt in ("%d/%m/%Y", "%m/%d/%y"):
+                try:
+                    event_date = datetime.datetime.strptime(date_str.strip(), fmt).date()
+                    break
+                except ValueError:
+                    continue
+            else:
+                continue  # Skip if date format is not recognized
+
+            if event_date < today:
+                past_events.append(event)
+            else:
+                upcoming_events.append(event)
 
         # Clear old widgets
         for widget in self.past_events_list.winfo_children():
