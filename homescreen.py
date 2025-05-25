@@ -1,3 +1,63 @@
+# Application Architecture & Class Communication
+
+## Overview
+
+#This application is structured using the Model-View-Controller (MVC) pattern, where:
+#- **Model** classes (like `Menu`) provide data and business logic.
+#- **View/Controller** classes (like `HomeScreenScreen`, `HomeScreen`) handle the user interface and user interactions.
+
+## Main Classes and Their Roles
+
+### 1. Menu (menu.py)
+#- **Role:** Acts as the data provider for the weekly restaurant (εστία) menu and related logic.
+#- **Responsibilities:**
+#  - Stores the current week's menu in a structured format.
+#  - Provides methods to get the current or next meal based on the time.
+#  - Provides the status of the restaurant (open/closed and when it opens next).
+
+### 2. HomeScreenScreen (homescreenscreen.py)
+#- **Role:** Handles the content and layout of the main home screen (the first screen the user sees).
+#- **Responsibilities:**
+#  - Displays a personalized greeting using the username from settings.
+#  - Shows a random fun fact.
+#  - Displays the current or next meal from the Menu class.
+#  - Shows the status of the restaurant using Menu's logic.
+
+### 3. HomeScreen (homescreen.py)
+#- **Role:** Manages the main application window, navigation bar, and switching between different screens.
+#- **Responsibilities:**
+#  - Creates and manages the main frame and navigation bar.
+#  - Handles navigation between different app sections (home, courses, nutrition, spendings, etc.).
+#  - Instantiates and displays the HomeScreenScreen in the content area.
+
+## How Classes Communicate
+
+#- **HomeScreen** creates an instance of **HomeScreenScreen** and calls its `display()` method to render the home page.
+#- **HomeScreenScreen** creates an instance of **Menu** to:
+#  - Retrieve the current or next meal (`get_current_or_next_meal`)
+#  - Get the restaurant status (`get_estia_status`)
+#- **HomeScreenScreen** also reads the username from the settings file to personalize the greeting.
+#- **Menu** is a pure logic/data class and does not depend on any UI classes.
+
+## Why This Structure?
+
+#- **Separation of Concerns:** Each class has a clear responsibility, making the code easier to maintain and extend.
+#- **Reusability:** The `Menu` class can be reused in other screens (e.g., nutrition, statistics) without modification.
+#- **Testability:** Logic in `Menu` can be tested independently from the UI.
+#- **Scalability:** New screens or features can be added by creating new classes and plugging them into the navigation system.
+
+## Example Communication Flow
+
+#1. User opens the app.
+#2. `HomeScreen` is initialized and displays the navigation bar and content frame.
+#3. `HomeScreen.open_homescreen()` is called, which creates a `HomeScreenScreen` and calls its `display()` method.
+#4. `HomeScreenScreen.display()`:
+#   - Reads the username from settings.
+#   - Instantiates `Menu` to get the current meal and status.
+#   - Updates the UI with this information.
+
+
+
 import customtkinter as ctk
 from tkinter import messagebox
 from schedule_screen import open_schedule
