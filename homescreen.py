@@ -122,9 +122,18 @@ class HomeScreen:
 if __name__ == "__main__":
     root = ctk.CTk()
 
-    root.state("zoomed")  # Try to maximize (works on most Windows)
+    try:
+        root.state("zoomed")  # Try to maximize (works on most Windows)
+    except Exception:
+        pass
+    # Fallback: set geometry to screen size (taskbar remains visible)
+    root.update_idletasks()
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+    root.geometry(f"{screen_width}x{screen_height}+0+0")
+     
     app = HomeScreen(root)
-    root.attributes("-fullscreen", True)
+    # root.attributes("-fullscreen", True)
     # Set 4:3 aspect ratio (e.g., 800x600)
     # root.geometry("800x600")
     # app_frame = ctk.CTkFrame(root)
