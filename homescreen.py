@@ -3,7 +3,7 @@ from tkinter import messagebox
 from schedule_screen import open_schedule
 from mam import open_nutrition
 from settings import SettingsMenuApp
-from courses import open_courses_screen
+from courses import CourseUI
 from homescreenscreen import HomeScreenScreen
 from task import open_task_screen
 from statistics_screen import StatisticsClass
@@ -86,7 +86,7 @@ class HomeScreen:
 
     def open_courses(self):
         self.clear_content()
-        open_courses_screen(self.content_frame)
+        CourseUI(self.content_frame)
 
     def show_nutrition(self):
         self.clear_content()
