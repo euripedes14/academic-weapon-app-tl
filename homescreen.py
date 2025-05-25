@@ -119,6 +119,12 @@ class HomeScreen:
             from login import login_app
             login_app()
 
+def on_closing():
+    # Cancel any scheduled callbacks here if you have their IDs
+    root.destroy()
+
+    root.protocol("WM_DELETE_WINDOW", on_closing)
+
 if __name__ == "__main__":
     root = ctk.CTk()
 

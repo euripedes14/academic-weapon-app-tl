@@ -10,6 +10,9 @@ import csv
 import os
 from PIL import Image, ImageDraw, ImageFont
 import io
+import json
+
+DATA_FILE = "spendings.json"
 
 # Set CTk theme and appearance
 ctk.set_appearance_mode("light")
@@ -26,6 +29,9 @@ class ExpenseTrackerApp:
         self.future_spendings = []
         self.repeating_spendings = []
         self.supermarket_items = []
+        self.current_overview_period = "month"  # Default period for overview
+
+        self.load_data()  # Load data from JSON
 
         # Create notebook (tabs)
         self.notebook = ctk.CTkTabview(parent_frame)
@@ -38,10 +44,44 @@ class ExpenseTrackerApp:
         self.menu_frame = ctk.CTkFrame(parent_frame, fg_color="#e6e6e6", height=50)
         self.menu_frame.pack(side="bottom", fill="x")
 
-        self.create_transactions_tab()
+        self.create_transactions_tab()  # Initialize transaction listbox
         self.create_overview_tab()
         self.create_future_repeating_tab()
-        self.supermarket_table.bind("<Double-1>", self.toggle_supermarket_item)
+
+        self.refresh_spendings_page()  # Refresh spendings table and graphs
+
+    def refresh_spendings_page(self):
+        """Refresh the spendings table and graphs."""
+        self.update_transaction_listbox()  # Update the transaction listbox
+        self.update_pie_chart()  # Update the pie chart with the current period
+
+    def load_data(self):
+        """Load spendings data from JSON file."""
+        if os.path.exists(DATA_FILE):
+            try:
+                with open(DATA_FILE, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                self.transactions = data.get("transactions", [])
+                self.future_spendings = data.get("future_spendings", [])
+                self.repeating_spendings = data.get("repeating_spendings", [])
+                self.supermarket_items = data.get("supermarket_items", [])
+                self.update_transaction_listbox()  # Update transaction listbox after loading
+            except Exception:
+                pass  # Ignore errors, start with empty lists
+
+    def save_data(self):
+        """Save spendings data to JSON file."""
+        data = {
+            "transactions": self.transactions,
+            "future_spendings": self.future_spendings,
+            "repeating_spendings": self.repeating_spendings,
+            "supermarket_items": self.supermarket_items,
+        }
+        try:
+            with open(DATA_FILE, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+        except Exception:
+            pass  # Ignore errors
 
     def create_transactions_tab(self):
         ctk.CTkLabel(self.transactions_frame, text="Προσθήκη Εξόδων", font=("Arial", 14)).pack(pady=10)
@@ -74,29 +114,97 @@ class ExpenseTrackerApp:
             if category and amount and formatted_date:
                 transaction_text = f"{formatted_date} - {category}: {amount}€\n"
                 self.transactions.append((category, float(amount), formatted_date))
-                self.transaction_listbox.insert("end", transaction_text)
+                self.update_transaction_listbox()  # Update transaction listbox after adding
                 self.amount_entry.delete(0, "end")
+                self.save_data()  # Save after change
                 self.update_pie_chart()
         except ValueError:
             messagebox.showerror("Invalid Date", "The date format is invalid. Please select a valid date.")
 
-    def create_overview_tab(self):
-        self.chart_frame = ctk.CTkFrame(self.overview_frame)
-        self.chart_frame.pack(expand=True, fill="both")
-        self.update_pie_chart()
+    def update_transaction_listbox(self):
+        """Update the transaction listbox with current transactions."""
+        self.transaction_listbox.delete("1.0", "end")  # Clear existing content
+        for category, amount, date in self.transactions:
+            transaction_text = f"{date} - {category}: {amount}€\n"
+            self.transaction_listbox.insert("end", transaction_text)
 
-    def update_pie_chart(self):
+    def create_overview_tab(self):
+        # Styled selection frame (like your screenshot)
+        selection_frame = ctk.CTkFrame(self.overview_frame, fg_color="#b3e0f7", corner_radius=15)
+        selection_frame.pack(fill="x", padx=60, pady=(30, 10))  # Use pack, not place
+
+        # Title label
+        ctk.CTkLabel(
+            selection_frame,
+            text="Ποια περίοδος σε ενδιαφέρει;",
+            font=("Arial", 16, "bold"),
+            text_color="#000000",
+            fg_color="transparent"
+        ).pack(pady=(10, 5))
+
+        # Button row
+        button_row = ctk.CTkFrame(selection_frame, fg_color="transparent")
+        button_row.pack(pady=(0, 10))
+
+        ctk.CTkButton(
+            button_row, text="Μήνας", width=120, height=32, corner_radius=10,
+            fg_color="#3498db", text_color="white", hover_color="#2980b9",
+            font=("Arial", 13, "bold"),
+            command=lambda: self.update_pie_chart("month")
+        ).pack(side="left", padx=10)
+
+        ctk.CTkButton(
+            button_row, text="Εβδομάδα", width=120, height=32, corner_radius=10,
+            fg_color="#3498db", text_color="white", hover_color="#2980b9",
+            font=("Arial", 13, "bold"),
+            command=lambda: self.update_pie_chart("week")
+        ).pack(side="left", padx=10)
+
+        ctk.CTkButton(
+            button_row, text="Έτος", width=120, height=32, corner_radius=10,
+            fg_color="#3498db", text_color="white", hover_color="#2980b9",
+            font=("Arial", 13, "bold"),
+            command=lambda: self.update_pie_chart("year")
+        ).pack(side="left", padx=10)
+
+        # Main frame for the overview tab (pie chart)
+        self.chart_frame = ctk.CTkFrame(self.overview_frame)
+        self.chart_frame.pack(expand=True, fill="both", pady=(10, 0))
+
+        self.update_pie_chart("month")  # Show month by default
+
+    def update_pie_chart(self, period=None):
+        if period:
+            self.current_overview_period = period
+        else:
+            period = self.current_overview_period
+
         for widget in self.chart_frame.winfo_children():
             widget.destroy()
+
         current_date = datetime.now()
-        filtered_month = [
-            (cat, amt) for cat, amt, d in self.transactions
-            if 0 <= (current_date - datetime.strptime(d, "%Y-%m-%d")).days <= 30
-        ]
-        filtered_year = [
-            (cat, amt) for cat, amt, d in self.transactions
-            if 0 <= (current_date - datetime.strptime(d, "%Y-%m-%d")).days <= 365
-        ]
+        if period == "month":
+            filtered = [
+                (cat, amt) for cat, amt, d in self.transactions
+                if 0 <= (current_date - datetime.strptime(d, "%Y-%m-%d")).days <= 30
+            ]
+            title = "Έξοδα Τελευταίου Μήνα"
+        elif period == "week":
+            filtered = [
+                (cat, amt) for cat, amt, d in self.transactions
+                if 0 <= (current_date - datetime.strptime(d, "%Y-%m-%d")).days <= 7
+            ]
+            title = "Έξοδα Τελευταίας Εβδομάδας"
+        elif period == "year":
+            filtered = [
+                (cat, amt) for cat, amt, d in self.transactions
+                if 0 <= (current_date - datetime.strptime(d, "%Y-%m-%d")).days <= 365
+            ]
+            title = "Έξοδα Τελευταίου Έτους"
+        else:
+            filtered = []
+            title = ""
+
         def get_category_totals(transactions):
             cats = {}
             for c, a in transactions:
@@ -112,33 +220,29 @@ class ExpenseTrackerApp:
             if small_sum > 0:
                 significant["Λοιπά έξοδα"] = significant.get("Λοιπά έξοδα", 0) + small_sum
             return significant
-        month_totals = get_category_totals(filtered_month)
-        year_totals = get_category_totals(filtered_year)
-        # Show a message if there is no data for either period
-        if not month_totals and not year_totals:
-            ctk.CTkLabel(self.chart_frame, text="Δεν υπάρχουν έξοδα για τον μήνα ή το έτος.", font=("Arial", 14)).pack(pady=40)
+
+        totals = get_category_totals(filtered)
+
+        if not totals:
+            ctk.CTkLabel(self.chart_frame, text="Δεν υπάρχουν έξοδα για αυτήν την περίοδο.", font=("Arial", 14)).pack(pady=40)
             return
-        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 4))
+
+        fig, ax = plt.subplots(figsize=(4, 4))
         fig.tight_layout(pad=3)
-        if month_totals:
-            labels_month = list(month_totals.keys())
-            values_month = list(month_totals.values())
-            ax1.pie(values_month, labels=labels_month, autopct='%1.1f%%', colors=plt.cm.tab20.colors[:len(labels_month)])
-            ax1.set_title("Έξοδα Τελευταίου Μήνα")
-        else:
-            ax1.axis('off')
-            ax1.text(0.5, 0.5, "Δεν υπάρχουν έξοδα\nγια τον μήνα", ha='center', va='center', fontsize=12)
-        if year_totals:
-            labels_year = list(year_totals.keys())
-            values_year = list(year_totals.values())
-            ax2.pie(values_year, labels=labels_year, autopct='%1.1f%%', colors=plt.cm.tab20.colors[:len(labels_year)])
-            ax2.set_title("Έξοδα Τελευταίου Έτους")
-        else:
-            ax2.axis('off')
-            ax2.text(0.5, 0.5, "Δεν υπάρχουν έξοδα\nγια το έτος", ha='center', va='center', fontsize=12)
+        labels = list(totals.keys())
+        values = list(totals.values())
+
+        def autopct_format(pct, all_values):
+            absolute = int(round(pct / 100. * sum(all_values)))
+            return f"{pct:.1f}%\n({absolute}€)"
+
+        ax.pie(values, labels=labels, autopct=lambda pct: autopct_format(pct, values), colors=plt.cm.tab20.colors[:len(labels)])
+        ax.set_title(title)
+
         canvas = FigureCanvasTkAgg(fig, master=self.chart_frame)
         canvas.get_tk_widget().pack()
         canvas.draw()
+        plt.close(fig)
 
     def create_future_repeating_tab(self):
         ctk.CTkLabel(self.future_repeating_frame, text="Διαχείριση Μελλοντικών και Επαναλαμβανόμενων Εξόδων", font=("Arial", 14)).pack(pady=10)
@@ -195,6 +299,7 @@ class ExpenseTrackerApp:
                 self.supermarket_table.item(item_id, values=(self.supermarket_items[item_index]["item"], "✓ Αγοράστηκε"), tags=("purchased",))
             else:
                 self.supermarket_table.item(item_id, values=(self.supermarket_items[item_index]["item"], "Εκκρεμεί"), tags=("unpurchased",))
+        self.save_data()  # Save after change
 
     def remove_supermarket_item(self):
         """Remove selected items from the supermarket list."""
@@ -206,6 +311,7 @@ class ExpenseTrackerApp:
             item_index = self.supermarket_table.index(item_id)
             del self.supermarket_items[item_index]
             self.supermarket_table.delete(item_id)
+        self.save_data()  # Save after change
 
     def export_to_csv(self):
         """Export the supermarket list to a CSV file."""
@@ -330,6 +436,7 @@ class ExpenseTrackerApp:
                 if category and amount and formatted_date:
                     self.future_spendings.append((category, float(amount), formatted_date))
                     self.future_listbox.insert("end", f"{formatted_date} - {category}: {amount}€")
+                    self.save_data()  # Save after change
                     popup.destroy()
             except ValueError:
                 messagebox.showerror("Invalid Input", "Please enter valid data.")
@@ -364,6 +471,7 @@ class ExpenseTrackerApp:
                 if category and amount and frequency.isdigit():
                     self.repeating_spendings.append((category, float(amount), int(frequency)))
                     self.repeating_listbox.insert("end", f"{category}: {amount}€ κάθε {frequency} ημέρες")
+                    self.save_data()  # Save after change
                     popup.destroy()
             except ValueError:
                 messagebox.showerror("Invalid Input", "Please enter valid data.")
@@ -385,9 +493,38 @@ class ExpenseTrackerApp:
             if item_name:
                 self.supermarket_items.append({"item": item_name, "purchased": False})
                 self.supermarket_table.insert("", "end", values=(item_name, "Όχι"))
+                self.save_data()  # Save after change
                 popup.destroy()
 
         ctk.CTkButton(popup, text="Προσθήκη", command=add_supermarket_item, fg_color="#5cb85c", text_color="white").pack(pady=10)
+
+    def toggle_selected_item(self):
+        """Toggle the purchased status of the selected supermarket item."""
+        selected_items = self.supermarket_table.selection()
+        if not selected_items:
+            return
+            
+        for item_id in selected_items:
+            item_index = self.supermarket_table.index(item_id)
+            self.supermarket_items[item_index]["purchased"] = not self.supermarket_items[item_index]["purchased"]
+            
+            if self.supermarket_items[item_index]["purchased"]:
+                self.supermarket_table.item(item_id, values=(self.supermarket_items[item_index]["item"], "✓ Αγοράστηκε"), tags=("purchased",))
+            else:
+                self.supermarket_table.item(item_id, values=(self.supermarket_items[item_index]["item"], "Εκκρεμεί"), tags=("unpurchased",))
+        self.save_data()  # Save after change
+
+    def remove_supermarket_item(self):
+        """Remove selected items from the supermarket list."""
+        selected_items = self.supermarket_table.selection()
+        if not selected_items:
+            return
+            
+        for item_id in selected_items:
+            item_index = self.supermarket_table.index(item_id)
+            del self.supermarket_items[item_index]
+            self.supermarket_table.delete(item_id)
+        self.save_data()  # Save after change
 
     def toggle_supermarket_item(self, event):
         """Toggle the purchased status of a supermarket item."""
@@ -397,6 +534,7 @@ class ExpenseTrackerApp:
             self.supermarket_items[item_index]["purchased"] = not self.supermarket_items[item_index]["purchased"]
             purchased_status = "Ναι" if self.supermarket_items[item_index]["purchased"] else "Όχι"
             self.supermarket_table.item(selected_item, values=(self.supermarket_items[item_index]["item"], purchased_status))
+            self.save_data()  # Save after change
 
 if __name__ == "__main__":
     root = ctk.CTk()
