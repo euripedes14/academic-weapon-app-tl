@@ -202,7 +202,7 @@ def show_estia(parent_frame):
     canvas = ctk.CTkCanvas(square_frame, width=800, height=500, bg="#B4D9E7", highlightthickness=0)
     canvas.pack(pady=10)
 
-    pdf_url = "https://www.upatras.gr/wp-content/uploads/2024/12/%CE%A0%CE%A1%CE%9F%CE%93%CE%A1%CE%91%CE%9C%CE%9C%CE%91-%CE%A3%CE%99%CE%A4%CE%99%CE%A3%CE%97%CE%A3-%CE%99%CE%91%CE%9D%CE%9F%CE%A5%CE%91%CE%A1%CE%99%CE%9F%CE%A3-2025_compressed.pdf"
+    pdf_url = "https://www.upatras.gr/wp-content/uploads/2025/04/%CE%A0%CE%A1%CE%9F%CE%93%CE%A1%CE%91%CE%9C%CE%9C%CE%91-%CE%A3%CE%99%CE%A4%CE%99%CE%A3%CE%97%CE%A3_%CE%9C%CE%91%CE%99%CE%9F%CE%A3_-2025_compressed.pdf"
     parent_frame._pdf_img = None
     parent_frame._canvas_img_id = None
 
