@@ -1,6 +1,6 @@
 import customtkinter as ctk
 from tkinter import simpledialog, messagebox
-from courses import chosen_subjects
+from courses import CourseManager
 import customtkinter as ctk
 from tkinter import simpledialog, messagebox
 from stopwatch import StopwatchTimer
