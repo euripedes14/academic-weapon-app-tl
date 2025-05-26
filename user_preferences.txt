@@ -1,0 +1,7 @@
+availability=
+timer_pref=pomodoro
+study_time=Afternoon
+goal=Get a pass
+notifications=on
+daily_target=2
+no_back_to_back=yes
