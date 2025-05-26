@@ -3,6 +3,38 @@ from CTkMessagebox import CTkMessagebox
 import os
 import openpyxl
 from schedule_screen import CTkInputDialog
+from datetime import date
+#We took it from here https://www.upatras.gr/stay-tuned/academic-calendar/
+# SEMESTER_PERIODS = {
+#     "odd": {
+#         "start": date(2025, 9, 29),
+#         "end": date(2026, 1, 9),
+#         "exam_start": date(2026, 1, 19),
+#         "exam_end": date(2026, 2, 6),
+#     },
+#     "even": {
+#         "start": date(2026, 2, 16),
+#         "end": date(2026, 5, 29),
+#         "exam_start": date(2026, 6, 8),
+#         "exam_end": date(2026, 6, 26),
+#     }
+# }
+#For testing we will example dates
+
+SEMESTER_PERIODS = {
+    "odd": {
+        "start": date(2025, 3, 1),      # started in the past
+        "end": date(2025, 6, 1),        # ends soon (good for testing "current" semester)
+        "exam_start": date(2025, 6, 10),
+        "exam_end": date(2025, 6, 20),
+    },
+    "even": {
+        "start": date(2025, 9, 15),     # starts in the future
+        "end": date(2026, 1, 15),
+        "exam_start": date(2026, 1, 20),
+        "exam_end": date(2026, 2, 5),
+    }
+}
 
 class CourseManager:
     """Handles loading, saving, and toggling courses."""
@@ -16,9 +48,11 @@ class CourseManager:
         wb = openpyxl.load_workbook(excel_path)
         sheet = wb.active
         data = {}
+        self.course_hours = {}
         for row in sheet.iter_rows(min_row=2, values_only=True):
             sem = row[3]
             course_name = row[1]
+            study_hours = row[6]
             if not sem or not course_name:
                 continue
             if sem in data:
@@ -46,6 +80,43 @@ class CourseManager:
                 return [line.strip() for line in f if line.strip()]
         except FileNotFoundError:
             return []
+        
+    def get_selected_subjects_with_hours(self):
+        """
+        Returns a list of dicts: [{'course_name': ..., 'study_hours': ..., 'semester_weeks': ..., 'period': {...}}, ...]
+        for all selected courses.
+        """
+        chosen = [course for course, var in self.selected_courses if var.get()]
+        subjects = []
+        for course in chosen:
+            hours = self.course_hours.get(course, 30)  # Default to 30 if not found
+            # Find semester for this course
+            semester = None
+            for sem, courses in self.semesters_data.items():
+                if course in courses:
+                    semester = sem
+                    break
+            # Determine if odd or even semester
+            if semester is not None:
+                try:
+                    sem_num = int(semester)
+                    sem_type = "odd" if sem_num % 2 == 1 else "even"
+                except Exception:
+                    sem_type = "odd"  # fallback
+            else:
+                sem_type = "odd"
+            # Calculate weeks
+            period = SEMESTER_PERIODS[sem_type]
+            semester_weeks = (period["end"] - period["start"]).days // 7
+            subjects.append({
+                'course_name': course,
+                'study_hours': hours,
+                'semester_weeks': semester_weeks,
+                'period': period,
+                'semester_type': sem_type,
+                'semester': semester
+            })
+        return subjects
 
 class CourseUI:
     """Handles the UI for course selection and tab switching."""
@@ -195,7 +266,7 @@ class SettingsManager:
         goal_label = ctk.CTkLabel(settings_frame, text="Στόχος Μελέτης:", text_color="#000000")
         goal_label.pack(anchor="w", padx=10, pady=5)
         goal_var = ctk.StringVar(value="Get a pass")
-        goal_options = ["Get a pass", "Ace my exams", "Understand material", "Keep up with assignments", "Other"]
+        goal_options = ["Get a pass", "Ace my exams", "Understand material", "Keep up with assignments"]
         goal_menu = ctk.CTkComboBox(settings_frame, values=goal_options, variable=goal_var)
         goal_menu.pack(fill="x", padx=10, pady=5)
 
@@ -237,49 +308,98 @@ class SettingsManager:
         )
         save_settings_button.pack(pady=10)
 
-    @staticmethod
-    def save_settings(availability, timer_pref, study_time, goal, notif, daily_target, no_back_to_back):
-        # Defensive programming for daily_target using CTkInputDialog
-        while True:
-            try:
-                daily_target_int = int(daily_target)
-                if daily_target_int <= 0:
-                    raise ValueError
-                break
-            except Exception:
-                input_dialog = CTkInputDialog(
-                    None,
-                    "Λανθασμένη τιμή",
-                    "Παρακαλώ εισάγετε έναν θετικό αριθμό για τον ημερήσιο στόχο μελέτης (λεπτά):"
-                )
-                daily_target = input_dialog.value
-                if daily_target is None or daily_target == "":
-                    CTkMessagebox(title="Ακύρωση", message="Η αποθήκευση ρυθμίσεων ακυρώθηκε.", icon="warning")
-                    return
+import json
 
-        # Save to a file for persistence
-        with open("user_timer_pref.txt", "w", encoding="utf-8") as f:
-            f.write(f"{timer_pref}\n")
-        with open("user_preferences.txt", "w", encoding="utf-8") as f:
-            f.write(f"availability={availability}\n")
-            f.write(f"timer_pref={timer_pref}\n")
-            f.write(f"study_time={study_time}\n")
-            f.write(f"goal={goal}\n")
-            f.write(f"notifications={'on' if notif else 'off'}\n")
-            f.write(f"daily_target={daily_target_int}\n")
-            f.write(f"no_back_to_back={'yes' if no_back_to_back else 'no'}\n")
-        CTkMessagebox(
-            title="Ρυθμίσεις",
-            message=(
-                f"Οι ρυθμίσεις αποθηκεύτηκαν:\n\n"
-                f"Διαθεσιμότητα: {availability}\n"
-                f"Χρονομέτρηση: {timer_pref}\n"
-                f"Ώρα Μελέτης: {study_time}\n"
-                f"Στόχος: {goal}\n"
-                f"Υπενθυμίσεις: {'Ναι' if notif else 'Όχι'}\n"
-                f"Ημερήσιος στόχος: {daily_target_int} λεπτά\n"
-                f"Όχι το ίδιο μάθημα συνεχόμενα: {'Ναι' if no_back_to_back else 'Όχι'}"
-            ),
-            icon="check"
-        )
+@staticmethod
+def save_settings(availability, timer_pref, study_time, goal, notif, daily_target, no_back_to_back):
+    # Defensive programming for daily_target using CTkInputDialog
+    while True:
+        try:
+            daily_target_int = int(daily_target)
+            if daily_target_int <= 0:
+                raise ValueError
+            break
+        except Exception:
+            input_dialog = CTkInputDialog(
+                None,
+                "Λανθασμένη τιμή",
+                "Παρακαλώ εισάγετε έναν θετικό αριθμό για τον ημερήσιο στόχο μελέτης (λεπτά):"
+            )
+            daily_target = input_dialog.value
+            if daily_target is None or daily_target == "":
+                CTkMessagebox(title="Ακύρωση", message="Η αποθήκευση ρυθμίσεων ακυρώθηκε.", icon="warning")
+                return
+
+    # Save all preferences in a single JSON file
+    preferences = {
+        "availability": availability,
+        "timer_pref": timer_pref,
+        "study_time": study_time,
+        "goal": goal,
+        "notifications": notif,
+        "daily_target": daily_target_int,
+        "no_back_to_back": no_back_to_back
+    }
+    with open("user_preferences.json", "w", encoding="utf-8") as f:
+        json.dump(preferences, f, ensure_ascii=False, indent=2)
+
+    CTkMessagebox(
+        title="Ρυθμίσεις",
+        message=(
+            f"Οι ρυθμίσεις αποθηκεύτηκαν:\n\n"
+            f"Διαθεσιμότητα: {availability}\n"
+            f"Χρονομέτρηση: {timer_pref}\n"
+            f"Ώρα Μελέτης: {study_time}\n"
+            f"Στόχος: {goal}\n"
+            f"Υπενθυμίσεις: {'Ναι' if notif else 'Όχι'}\n"
+            f"Ημερήσιος στόχος: {daily_target_int} λεπτά\n"
+            f"Όχι το ίδιο μάθημα συνεχόμενα: {'Ναι' if no_back_to_back else 'Όχι'}"
+        ),
+        icon="check"
+    )
+   # @staticmethod
+    # def save_settings(availability, timer_pref, study_time, goal, notif, daily_target, no_back_to_back):
+    #     # Defensive programming for daily_target using CTkInputDialog
+    #     while True:
+    #         try:
+    #             daily_target_int = int(daily_target)
+    #             if daily_target_int <= 0:
+    #                 raise ValueError
+    #             break
+    #         except Exception:
+    #             input_dialog = CTkInputDialog(
+    #                 None,
+    #                 "Λανθασμένη τιμή",
+    #                 "Παρακαλώ εισάγετε έναν θετικό αριθμό για τον ημερήσιο στόχο μελέτης (λεπτά):"
+    #             )
+    #             daily_target = input_dialog.value
+    #             if daily_target is None or daily_target == "":
+    #                 CTkMessagebox(title="Ακύρωση", message="Η αποθήκευση ρυθμίσεων ακυρώθηκε.", icon="warning")
+    #                 return
+
+    #     # Save to a file for persistence
+    #     with open("user_timer_pref.txt", "w", encoding="utf-8") as f:
+    #         f.write(f"{timer_pref}\n")
+    #     with open("user_preferences.txt", "w", encoding="utf-8") as f:
+    #         f.write(f"availability={availability}\n")
+    #         f.write(f"timer_pref={timer_pref}\n")
+    #         f.write(f"study_time={study_time}\n")
+    #         f.write(f"goal={goal}\n")
+    #         f.write(f"notifications={'on' if notif else 'off'}\n")
+    #         f.write(f"daily_target={daily_target_int}\n")
+    #         f.write(f"no_back_to_back={'yes' if no_back_to_back else 'no'}\n")
+    #     CTkMessagebox(
+    #         title="Ρυθμίσεις",
+    #         message=(
+    #             f"Οι ρυθμίσεις αποθηκεύτηκαν:\n\n"
+    #             f"Διαθεσιμότητα: {availability}\n"
+    #             f"Χρονομέτρηση: {timer_pref}\n"
+    #             f"Ώρα Μελέτης: {study_time}\n"
+    #             f"Στόχος: {goal}\n"
+    #             f"Υπενθυμίσεις: {'Ναι' if notif else 'Όχι'}\n"
+    #             f"Ημερήσιος στόχος: {daily_target_int} λεπτά\n"
+    #             f"Όχι το ίδιο μάθημα συνεχόμενα: {'Ναι' if no_back_to_back else 'Όχι'}"
+    #         ),
+    #         icon="check"
+    #     )
   
