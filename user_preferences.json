@@ -1,0 +1,9 @@
+{
+  "availability": "",
+  "timer_pref": "pomodoro",
+  "study_time": "Afternoon",
+  "goal": "Get a pass",
+  "notifications": true,
+  "daily_target": 40,
+  "no_back_to_back": true
+}

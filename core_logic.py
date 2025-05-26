@@ -3,6 +3,16 @@
 from ortools.sat.python import cp_model
 import math
 
+GOAL_PERCENTAGE = {
+    "Get a pass": 0.5,
+    "Ace my exams": 1.0,
+    "Understand material": 0.7,
+    "Keep up with assignments": 0.65
+}
+
+def get_goal_percentage(goal):
+    return GOAL_PERCENTAGE.get(goal, 1.0)
+
 class StudyScheduler:
     def __init__(self, subjects, user_availability, preferences):
         """

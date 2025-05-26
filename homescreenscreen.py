@@ -30,10 +30,13 @@ funfacts = [
 ]
 
 class HomeScreenScreen:
-    def __init__(self, parent_frame):
+    def __init__(self, parent_frame, username=None):
         self.parent_frame = parent_frame
+        self.username = username
 
     def get_username(self):
+        if self.username:
+            return self.username
         try:
             with open("settings.json", "r", encoding="utf-8") as f:
                 data = json.load(f)
