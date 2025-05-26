@@ -155,11 +155,12 @@ class CourseUI:
     def show_courses_tab(self, content_frame):
         for widget in content_frame.winfo_children():
             widget.destroy()
-        semester_list_frame = ctk.CTkFrame(content_frame, bg_color="#ffffff")
-        semester_list_frame.pack(fill="x", pady=10)
+        # Κάνε scrollable το πλαίσιο λίστας εξαμήνων/μαθημάτων
+        scrollable_semester_list = ctk.CTkScrollableFrame(content_frame, bg_color="#ffffff")
+        scrollable_semester_list.pack(fill="both", expand=True, pady=10)
         self.manager.selected_courses = []
         for sem, courses in self.manager.semesters_data.items():
-            sem_header = ctk.CTkFrame(semester_list_frame, bg_color="#ffffff")
+            sem_header = ctk.CTkFrame(scrollable_semester_list, bg_color="#ffffff")
             sem_header.pack(fill="x", padx=10, pady=5)
             toggle_button = ctk.CTkButton(
                 sem_header, text=f"+ Semester {sem}",
@@ -186,59 +187,15 @@ class CourseUI:
             toggle_button.configure(text=f"- Semester {sem}")
 
     def show_settings_tab(self, content_frame):
-        SettingsManager.show_settings_tab(content_frame)
-
-class AvailabilityCalendar:
-    """Handles the calendar popup for selecting available study times."""
-    @staticmethod
-    def open_calendar_popup(parent, availability_var):
-        popup = ctk.CTkToplevel(parent)
-        popup.title("Επιλογή Διαθεσιμότητας")
-        popup.geometry("400x400")
-        popup.grab_set()
-        instructions = ctk.CTkLabel(popup, text="Επιλέξτε τις διαθέσιμες ώρες με κλικ:", font=("Arial", 12))
-        instructions.pack(pady=10)
-        selected_slots = set()
-        def toggle_slot(day, hour, button):
-            slot = f"{day} {hour}:00-{hour + 1}:00"
-            if slot in selected_slots:
-                selected_slots.remove(slot)
-                button.configure(fg_color="white", text_color="black")
-            else:
-                selected_slots.add(slot)
-                button.configure(fg_color="#90caf9", text_color="black")
-        days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-        hours = range(8, 21)
-        grid_frame = ctk.CTkFrame(popup)
-        grid_frame.pack(pady=10)
-        for col, day in enumerate(days):
-            ctk.CTkLabel(grid_frame, text=day, font=("Arial", 10, "bold")).grid(row=0, column=col + 1, padx=5, pady=5)
-        for row, hour in enumerate(hours):
-            ctk.CTkLabel(grid_frame, text=f"{hour}:00", font=("Arial", 10)).grid(row=row + 1, column=0, padx=5, pady=5)
-        for row, hour in enumerate(hours):
-            for col, day in enumerate(days):
-                btn = ctk.CTkButton(
-                    grid_frame, text="", width=30, height=20, fg_color="white", text_color="black"
-                )
-                btn.grid(row=row + 1, column=col + 1, padx=2, pady=2)
-                btn.configure(command=lambda d=day, h=hour, b=btn: toggle_slot(d, h, b))
-        def save_slots():
-            availability_var.set(", ".join(sorted(selected_slots)))
-            popup.destroy()
-        save_button = ctk.CTkButton(popup, text="Αποθήκευση", command=save_slots, fg_color="lightgreen", text_color="black")
-        save_button.pack(pady=10)
-
-class SettingsManager:
-    """Handles saving and displaying user settings."""
-    @staticmethod
-    def show_settings_tab(content_frame):
         for widget in content_frame.winfo_children():
             widget.destroy()
-        settings_frame = ctk.CTkFrame(content_frame, bg_color="#f9f9f9", corner_radius=10)
+        # Εμφάνιση όλων των ρυθμίσεων σε scrollable πλαίσιο
+        scrollable_settings = ctk.CTkScrollableFrame(content_frame, bg_color="#ffffff")
+        scrollable_settings.pack(fill="both", expand=True, pady=10)
+        settings_frame = ctk.CTkFrame(scrollable_settings, bg_color="#f9f9f9", corner_radius=10)
         settings_frame.pack(fill="x", pady=20, padx=20)
         settings_title = ctk.CTkLabel(settings_frame, text="Ρυθμίσεις", font=("Arial", 14, "bold"), text_color="#000000")
         settings_title.pack(pady=10)
-
         # Availability
         availability_label = ctk.CTkLabel(settings_frame, text="Διαθεσιμότητα Εβδομάδας:", text_color="#000000")
         availability_label.pack(anchor="w", padx=10, pady=5)
@@ -247,7 +204,6 @@ class SettingsManager:
         availability_entry.pack(fill="x", padx=10, pady=5)
         availability_button = ctk.CTkButton(settings_frame, text="Επιλογή Διαθεσιμότητας", command=lambda: AvailabilityCalendar.open_calendar_popup(settings_frame, availability_var), fg_color="#e0e0e0", text_color="#000000", hover_color="#d6d6d6")
         availability_button.pack(pady=5)
-
         # Timer preference
         timer_label = ctk.CTkLabel(settings_frame, text="Προτίμηση Χρονομέτρου:", text_color="#000000")
         timer_label.pack(anchor="w", padx=10, pady=5)
@@ -255,7 +211,6 @@ class SettingsManager:
         timer_options = ["stopwatch", "pomodoro"]
         timer_menu = ctk.CTkComboBox(settings_frame, values=timer_options, variable=timer_pref_var)
         timer_menu.pack(fill="x", padx=10, pady=5)
-
         # Preferred study time
         study_time_label = ctk.CTkLabel(settings_frame, text="Προτιμώμενη Ώρα Μελέτης:", text_color="#000000")
         study_time_label.pack(anchor="w", padx=10, pady=5)
@@ -263,7 +218,6 @@ class SettingsManager:
         study_time_options = ["Morning", "Afternoon", "Evening", "Night"]
         study_time_menu = ctk.CTkComboBox(settings_frame, values=study_time_options, variable=study_time_var)
         study_time_menu.pack(fill="x", padx=10, pady=5)
-
         # Study goal
         goal_label = ctk.CTkLabel(settings_frame, text="Στόχος Μελέτης:", text_color="#000000")
         goal_label.pack(anchor="w", padx=10, pady=5)
@@ -271,33 +225,29 @@ class SettingsManager:
         goal_options = ["Get a pass", "Ace my exams", "Understand material", "Keep up with assignments"]
         goal_menu = ctk.CTkComboBox(settings_frame, values=goal_options, variable=goal_var)
         goal_menu.pack(fill="x", padx=10, pady=5)
-
         # Notification preference
         notif_label = ctk.CTkLabel(settings_frame, text="Υπενθυμίσεις:", text_color="#000000")
         notif_label.pack(anchor="w", padx=10, pady=5)
         notif_var = ctk.BooleanVar(value=True)
         notif_checkbox = ctk.CTkCheckBox(settings_frame, text="Ενεργοποίηση Υπενθυμίσεων", variable=notif_var, bg_color="#f9f9f9")
         notif_checkbox.pack(anchor="w", padx=10, pady=5)
-
         # Daily study target
         daily_target_label = ctk.CTkLabel(settings_frame, text="Ημερήσιος Στόχος Μελέτης (λεπτά):", text_color="#000000")
         daily_target_label.pack(anchor="w", padx=10, pady=5)
         daily_target_var = ctk.StringVar()
         daily_target_entry = ctk.CTkEntry(settings_frame, textvariable=daily_target_var, placeholder_text="π.χ. 90")
         daily_target_entry.pack(fill="x", padx=10, pady=5)
-
         # No back-to-back
         preferences_label = ctk.CTkLabel(settings_frame, text="Προτιμήσεις Χρήστη:", text_color="#000000")
         preferences_label.pack(anchor="w", padx=10, pady=5)
         no_back_to_back_var = ctk.BooleanVar()
         no_back_to_back_checkbox = ctk.CTkCheckBox(settings_frame, text="Όχι το ίδιο μάθημα συνεχόμενα", variable=no_back_to_back_var, bg_color="#f9f9f9")
         no_back_to_back_checkbox.pack(anchor="w", padx=10, pady=5)
-
         # Save button
         save_settings_button = ctk.CTkButton(
             settings_frame,
             text="Αποθήκευση Ρυθμίσεων",
-            command=lambda: SettingsManager.save_settings(
+            command=lambda: self.save_settings(
                 availability_var.get(),
                 timer_pref_var.get(),
                 study_time_var.get(),
@@ -310,54 +260,48 @@ class SettingsManager:
         )
         save_settings_button.pack(pady=10)
 
-
-    @staticmethod
-    def save_settings(availability, timer_pref, study_time, goal, notif, daily_target, no_back_to_back):
-            # Defensive programming for daily_target using CTkInputDialog
-            while True:
-                try:
-                    daily_target_int = int(daily_target)
-                    if daily_target_int <= 0:
-                        raise ValueError
-                    break
-                except Exception:
-                    input_dialog = CTkInputDialog(
-                        None,
-                        "Λανθασμένη τιμή",
-                        "Παρακαλώ εισάγετε έναν θετικό αριθμό για τον ημερήσιο στόχο μελέτης (λεπτά):"
-                    )
-                    daily_target = input_dialog.value
-                    if daily_target is None or daily_target == "":
-                        CTkMessagebox(title="Ακύρωση", message="Η αποθήκευση ρυθμίσεων ακυρώθηκε.", icon="warning")
-                        return
-
-            # Save all preferences in a single JSON file
-            preferences = {
-                "availability": availability,
-                "timer_pref": timer_pref,
-                "study_time": study_time,
-                "goal": goal,
-                "notifications": notif,
-                "daily_target": daily_target_int,
-                "no_back_to_back": no_back_to_back
-            }
-            with open("user_preferences.json", "w", encoding="utf-8") as f:
-                json.dump(preferences, f, ensure_ascii=False, indent=2)
-
-            CTkMessagebox(
-                title="Ρυθμίσεις",
-                message=(
-                    f"Οι ρυθμίσεις αποθηκεύτηκαν:\n\n"
-                    f"Διαθεσιμότητα: {availability}\n"
-                    f"Χρονομέτρηση: {timer_pref}\n"
-                    f"Ώρα Μελέτης: {study_time}\n"
-                    f"Στόχος: {goal}\n"
-                    f"Υπενθυμίσεις: {'Ναι' if notif else 'Όχι'}\n"
-                    f"Ημερήσιος στόχος: {daily_target_int} λεπτά\n"
-                    f"Όχι το ίδιο μάθημα συνεχόμενα: {'Ναι' if no_back_to_back else 'Όχι'}"
-                ),
-                icon="check"
-            )
+    def save_settings(self, availability, timer_pref, study_time, goal, notif, daily_target, no_back_to_back):
+        while True:
+            try:
+                daily_target_int = int(daily_target)
+                if daily_target_int <= 0:
+                    raise ValueError
+                break
+            except Exception:
+                input_dialog = CTkInputDialog(
+                    None,
+                    "Λανθασμένη τιμή",
+                    "Παρακαλώ εισάγετε έναν θετικό αριθμό για τον ημερήσιο στόχο μελέτης (λεπτά):"
+                )
+                daily_target = input_dialog.value
+                if daily_target is None or daily_target == "":
+                    CTkMessagebox(title="Ακύρωση", message="Η αποθήκευση ρυθμίσεων ακυρώθηκε.", icon="warning")
+                    return
+        preferences = {
+            "availability": availability,
+            "timer_pref": timer_pref,
+            "study_time": study_time,
+            "goal": goal,
+            "notifications": notif,
+            "daily_target": daily_target_int,
+            "no_back_to_back": no_back_to_back
+        }
+        with open("user_preferences.json", "w", encoding="utf-8") as f:
+            json.dump(preferences, f, ensure_ascii=False, indent=2)
+        CTkMessagebox(
+            title="Ρυθμίσεις",
+            message=(
+                f"Οι ρυθμίσεις αποθηκεύτηκαν:\n\n"
+                f"Διαθεσιμότητα: {availability}\n"
+                f"Χρονομέτρηση: {timer_pref}\n"
+                f"Ώρα Μελέτης: {study_time}\n"
+                f"Στόχος: {goal}\n"
+                f"Υπενθυμίσεις: {'Ναι' if notif else 'Όχι'}\n"
+                f"Ημερήσιος στόχος: {daily_target_int} λεπτά\n"
+                f"Όχι το ίδιο μάθημα συνεχόμενα: {'Ναι' if no_back_to_back else 'Όχι'}"
+            ),
+            icon="check"
+        )
    # @staticmethod
     # def save_settings(availability, timer_pref, study_time, goal, notif, daily_target, no_back_to_back):
     #     # Defensive programming for daily_target using CTkInputDialog
@@ -403,4 +347,4 @@ class SettingsManager:
     #         ),
     #         icon="check"
     #     )
-  
+

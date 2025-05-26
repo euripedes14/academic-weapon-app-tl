@@ -167,7 +167,7 @@ class EstiaMenu:
             self.show_page()
 
 class AllouMenu:
-     def __init__(self, parent_frame):
+    def __init__(self, parent_frame):
         self.map_frame = ctk.CTkFrame(parent_frame, width=900, height=600, corner_radius=10)
         self.map_frame.pack(pady=20, padx=20, anchor="center", expand=True)
         self.map_frame.pack_propagate(False)
@@ -185,18 +185,21 @@ class AllouMenu:
         loading_label.pack(pady=20)
 
         def load_map():
+            # Only the map search logic runs in the thread
+            def on_map_ready():
+                loading_label.destroy()
+                search_frame = ctk.CTkFrame(self.map_frame)
+                search_frame.pack(pady=10)
+                search_entry = ctk.CTkEntry(search_frame, width=50)
+                search_entry.pack(side=ctk.LEFT, padx=10)
+                search_button = ctk.CTkButton(
+                    search_frame,
+                    text="Search",
+                    command=lambda: map_search.search_location(search_entry.get())
+                )
+                search_button.pack(side=ctk.LEFT)
             map_search = MapSearch(self.map_frame)
-            loading_label.destroy()
-            search_frame = ctk.CTkFrame(self.map_frame)
-            search_frame.pack(pady=10)
-            search_entry = ctk.CTkEntry(search_frame, width=50)
-            search_entry.pack(side=ctk.LEFT, padx=10)
-            search_button = ctk.CTkButton(
-                search_frame,
-                text="Search",
-                command=lambda: map_search.search_location(search_entry.get())
-            )
-            search_button.pack(side=ctk.LEFT)
+            self.map_frame.after(0, on_map_ready)
 
         threading.Thread(target=load_map).start()
 

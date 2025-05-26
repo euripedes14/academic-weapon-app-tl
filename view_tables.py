@@ -27,7 +27,6 @@ def view_all_tables():
         "transactions",
         "future_spendings",
         "repeating_spendings",
-        "tasks",
         "pomodoro_sessions",
         "streaks"
     ]

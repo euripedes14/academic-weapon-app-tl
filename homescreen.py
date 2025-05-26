@@ -65,7 +65,7 @@ from mam import open_nutrition
 from settings import SettingsMenuApp
 from courses import CourseUI
 from homescreenscreen import HomeScreenScreen
-from task import open_task_screen
+from study import open_study_screen
 from statistics_screen import StatisticsClass
 from spendings import ExpenseTrackerApp
 from CTkMessagebox import CTkMessagebox
@@ -155,7 +155,7 @@ class HomeScreen:
 
     def show_schedule(self):
         self.clear_content()
-        open_schedule(self.content_frame)
+        open_schedule(self.content_frame, username=self.username)
 
     def show_settings(self):
         self.clear_content()
@@ -167,7 +167,7 @@ class HomeScreen:
 
     def open_tasks(self):
         self.clear_content()
-        open_task_screen(self.content_frame)
+        open_study_screen(self.content_frame, username=self.username)
 
     def open_spendings(self):
         self.clear_content()
