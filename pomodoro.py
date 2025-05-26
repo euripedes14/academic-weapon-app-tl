@@ -4,6 +4,8 @@ from courses import CourseManager
 import customtkinter as ctk
 from tkinter import simpledialog, messagebox
 from stopwatch import StopwatchTimer
+import json
+
 
 
 class PomodoroTimer:
@@ -18,6 +20,8 @@ class PomodoroTimer:
         self.total_sessions = 0
         self.completed_sessions = 0
         self.speed = 1
+        ########
+        self.session_completed = False
         self.setup_ui()
 
     def setup_ui(self):
@@ -112,3 +116,5 @@ class PomodoroTimer:
         self.count_label.configure(text="Ολοκληρώθηκαν: 0")
         self.session_input.delete(0, "end")
         self.session_input.insert(0, "1")
+        #########
+        self.session_completed = False

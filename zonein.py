@@ -3,6 +3,8 @@ from CTkMessagebox import CTkMessagebox
 from pomodoro import PomodoroTimer
 from stopwatch import StopwatchTimer
 from courses import CourseManager
+import json
+
 
 class ZoneInScreen:
     def __init__(self, parent):
@@ -70,12 +72,18 @@ class ZoneInScreen:
             self.checkin_btn.configure(state="disabled")
             self.checkout_btn.configure(state="normal")
             # Read timer preference
-            timer_pref = "stopwatch"
+            # timer_pref = "stopwatch"
+            # try:
+            #     with open("user_timer_pref.txt", "r") as f:
+            #         timer_pref = f.read().strip()
+            # except FileNotFoundError:
+            #     pass  # Default to stopwatch if not set
             try:
-                with open("user_timer_pref.txt", "r") as f:
-                    timer_pref = f.read().strip()
-            except FileNotFoundError:
-                pass  # Default to stopwatch if not set
+                with open("user_preferences.json", "r", encoding="utf-8") as f:
+                    prefs = json.load(f)
+                    timer_pref = prefs.get("timer_pref", "stopwatch")
+            except Exception:
+                timer_pref = "stopwatch"
 
             if timer_pref == "pomodoro":
                 # Reset Pomodoro timer and start it

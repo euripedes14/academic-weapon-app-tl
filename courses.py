@@ -4,6 +4,8 @@ import os
 import openpyxl
 from schedule_screen import CTkInputDialog
 from datetime import date
+import json
+
 #We took it from here https://www.upatras.gr/stay-tuned/academic-calendar/
 # SEMESTER_PERIODS = {
 #     "odd": {
@@ -308,55 +310,54 @@ class SettingsManager:
         )
         save_settings_button.pack(pady=10)
 
-import json
 
-@staticmethod
-def save_settings(availability, timer_pref, study_time, goal, notif, daily_target, no_back_to_back):
-    # Defensive programming for daily_target using CTkInputDialog
-    while True:
-        try:
-            daily_target_int = int(daily_target)
-            if daily_target_int <= 0:
-                raise ValueError
-            break
-        except Exception:
-            input_dialog = CTkInputDialog(
-                None,
-                "Λανθασμένη τιμή",
-                "Παρακαλώ εισάγετε έναν θετικό αριθμό για τον ημερήσιο στόχο μελέτης (λεπτά):"
+    @staticmethod
+    def save_settings(availability, timer_pref, study_time, goal, notif, daily_target, no_back_to_back):
+            # Defensive programming for daily_target using CTkInputDialog
+            while True:
+                try:
+                    daily_target_int = int(daily_target)
+                    if daily_target_int <= 0:
+                        raise ValueError
+                    break
+                except Exception:
+                    input_dialog = CTkInputDialog(
+                        None,
+                        "Λανθασμένη τιμή",
+                        "Παρακαλώ εισάγετε έναν θετικό αριθμό για τον ημερήσιο στόχο μελέτης (λεπτά):"
+                    )
+                    daily_target = input_dialog.value
+                    if daily_target is None or daily_target == "":
+                        CTkMessagebox(title="Ακύρωση", message="Η αποθήκευση ρυθμίσεων ακυρώθηκε.", icon="warning")
+                        return
+
+            # Save all preferences in a single JSON file
+            preferences = {
+                "availability": availability,
+                "timer_pref": timer_pref,
+                "study_time": study_time,
+                "goal": goal,
+                "notifications": notif,
+                "daily_target": daily_target_int,
+                "no_back_to_back": no_back_to_back
+            }
+            with open("user_preferences.json", "w", encoding="utf-8") as f:
+                json.dump(preferences, f, ensure_ascii=False, indent=2)
+
+            CTkMessagebox(
+                title="Ρυθμίσεις",
+                message=(
+                    f"Οι ρυθμίσεις αποθηκεύτηκαν:\n\n"
+                    f"Διαθεσιμότητα: {availability}\n"
+                    f"Χρονομέτρηση: {timer_pref}\n"
+                    f"Ώρα Μελέτης: {study_time}\n"
+                    f"Στόχος: {goal}\n"
+                    f"Υπενθυμίσεις: {'Ναι' if notif else 'Όχι'}\n"
+                    f"Ημερήσιος στόχος: {daily_target_int} λεπτά\n"
+                    f"Όχι το ίδιο μάθημα συνεχόμενα: {'Ναι' if no_back_to_back else 'Όχι'}"
+                ),
+                icon="check"
             )
-            daily_target = input_dialog.value
-            if daily_target is None or daily_target == "":
-                CTkMessagebox(title="Ακύρωση", message="Η αποθήκευση ρυθμίσεων ακυρώθηκε.", icon="warning")
-                return
-
-    # Save all preferences in a single JSON file
-    preferences = {
-        "availability": availability,
-        "timer_pref": timer_pref,
-        "study_time": study_time,
-        "goal": goal,
-        "notifications": notif,
-        "daily_target": daily_target_int,
-        "no_back_to_back": no_back_to_back
-    }
-    with open("user_preferences.json", "w", encoding="utf-8") as f:
-        json.dump(preferences, f, ensure_ascii=False, indent=2)
-
-    CTkMessagebox(
-        title="Ρυθμίσεις",
-        message=(
-            f"Οι ρυθμίσεις αποθηκεύτηκαν:\n\n"
-            f"Διαθεσιμότητα: {availability}\n"
-            f"Χρονομέτρηση: {timer_pref}\n"
-            f"Ώρα Μελέτης: {study_time}\n"
-            f"Στόχος: {goal}\n"
-            f"Υπενθυμίσεις: {'Ναι' if notif else 'Όχι'}\n"
-            f"Ημερήσιος στόχος: {daily_target_int} λεπτά\n"
-            f"Όχι το ίδιο μάθημα συνεχόμενα: {'Ναι' if no_back_to_back else 'Όχι'}"
-        ),
-        icon="check"
-    )
    # @staticmethod
     # def save_settings(availability, timer_pref, study_time, goal, notif, daily_target, no_back_to_back):
     #     # Defensive programming for daily_target using CTkInputDialog
