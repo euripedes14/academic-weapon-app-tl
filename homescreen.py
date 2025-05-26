@@ -141,7 +141,7 @@ class HomeScreen:
     def open_homescreen(self):
         self.clear_content()
         self.root.state("zoomed")
-        homescreen_screen = HomeScreenScreen(self.content_frame)
+        homescreen_screen = HomeScreenScreen(self.content_frame, username=self.username)
         homescreen_screen.display()
 
     def open_courses(self):

@@ -1,12 +1,13 @@
 {
-  "mistis": {
+  "AlienUser123": {
     "profile": {
-      "username": "mistis",
-      "pronouns": null
+      "username": "AlienUser123",
+      "pronouns": "αυτοί/αυτών"
     },
     "account": {
       "email": null,
-      "password": "dimitra134340"
+      "password": "123",
+      "username": "AlienUser123"
     }
   }
 }
