@@ -2,6 +2,11 @@
 # This module contains the core logic for scheduling study sessions using Google OR-Tools.
 from ortools.sat.python import cp_model
 import math
+import json
+
+# Load user preferences from JSON file
+with open("user_preferences.json", "r", encoding="utf-8") as f:
+    user_preferences = json.load(f)
 
 GOAL_PERCENTAGE = {
     "Get a pass": 0.5,

@@ -1,9 +1,16 @@
 {
-  "availability": "",
+  "availability": {
+    "Δευτέρα": [
+      "18:00-20:00"
+    ],
+    "Τετάρτη": [
+      "18:00-20:00"
+    ]
+  },
   "timer_pref": "pomodoro",
   "study_time": "Afternoon",
   "goal": "Get a pass",
   "notifications": true,
-  "daily_target": 40,
+  "daily_target": 80,
   "no_back_to_back": true
 }

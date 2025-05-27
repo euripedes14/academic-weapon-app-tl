@@ -177,6 +177,7 @@ class CourseUI:
         save_button = ctk.CTkButton(content_frame, text="Αποθήκευση", command=self.manager.save_courses, width=20, fg_color="#e0e0e0", text_color="#000000", hover_color="#d6d6d6")
         save_button.pack(pady=20)
 
+
     @staticmethod
     def toggle_courses(sem, course_frame, toggle_button):
         if course_frame.winfo_ismapped():
@@ -202,7 +203,51 @@ class CourseUI:
         availability_var = ctk.StringVar()
         availability_entry = ctk.CTkEntry(settings_frame, textvariable=availability_var, state="readonly", placeholder_text="Click to select times")
         availability_entry.pack(fill="x", padx=10, pady=5)
-        availability_button = ctk.CTkButton(settings_frame, text="Επιλογή Διαθεσιμότητας", command=lambda: AvailabilityCalendar.open_calendar_popup(settings_frame, availability_var), fg_color="#e0e0e0", text_color="#000000", hover_color="#d6d6d6")
+        # availability_button = ctk.CTkButton(settings_frame, text="Επιλογή Διαθεσιμότητας", command=lambda: AvailabilityCalendar.open_calendar_popup(settings_frame, availability_var), ...)
+
+        def open_availability_popup():
+            popup = ctk.CTkToplevel(settings_frame)
+            popup.title("Επιλογή Διαθεσιμότητας")
+            popup.geometry("400x400")
+            days = ["Δευτέρα", "Τρίτη", "Τετάρτη", "Πέμπτη", "Παρασκευή", "Σάββατο", "Κυριακή"]
+            day_vars = []
+            time_vars = []
+            for day in days:
+                row = ctk.CTkFrame(popup)
+                row.pack(fill="x", padx=10, pady=3)
+                day_var = ctk.BooleanVar()
+                time_var = ctk.StringVar()
+                cb = ctk.CTkCheckBox(row, text=day, variable=day_var)
+                cb.pack(side="left")
+                time_entry = ctk.CTkEntry(row, textvariable=time_var, width=120, placeholder_text="π.χ. 10:00-18:00")
+                time_entry.pack(side="left", padx=10)
+                day_vars.append(day_var)
+                time_vars.append(time_var)
+
+            def set_availability():
+                selections = []
+                for i, day_var in enumerate(day_vars):
+                    if day_var.get():
+                        time_str = time_vars[i].get().strip()
+                        if time_str:
+                            selections.append(f"{days[i]} {time_str}")
+                if selections:
+                    availability_var.set("; ".join(selections))
+                else:
+                    availability_var.set("")
+                popup.destroy()
+
+            ok_btn = ctk.CTkButton(popup, text="OK", command=set_availability)
+            ok_btn.pack(pady=15)
+
+        availability_button = ctk.CTkButton(
+            settings_frame,
+            text="Επιλογή Διαθεσιμότητας",
+            command=open_availability_popup,
+            fg_color="#e0e0e0",
+            text_color="#000000",
+            hover_color="#d6d6d6"
+        )
         availability_button.pack(pady=5)
         # Timer preference
         timer_label = ctk.CTkLabel(settings_frame, text="Προτίμηση Χρονομέτρου:", text_color="#000000")
@@ -261,6 +306,66 @@ class CourseUI:
         save_settings_button.pack(pady=10)
 
     def save_settings(self, availability, timer_pref, study_time, goal, notif, daily_target, no_back_to_back):
+        def parse_availability(availability_str):
+            result = {}
+            for entry in availability_str.split(";"):
+                entry = entry.strip()
+                if not entry:
+                    continue
+                parts = entry.split(" ", 1)
+                if len(parts) == 2:
+                    day, times = parts
+                    result.setdefault(day, []).append(times)
+            return result
+
+        while True:
+            try:
+                daily_target_int = int(daily_target)
+                if daily_target_int <= 0:
+                    raise ValueError
+                break
+            except Exception:
+                input_dialog = CTkInputDialog(
+                    None,
+                    "Λανθασμένη τιμή",
+                    "Παρακαλώ εισάγετε έναν θετικό αριθμό για τον ημερήσιο στόχο μελέτης (λεπτά):"
+                )
+                daily_target = input_dialog.value
+                if daily_target is None or daily_target == "":
+                    CTkMessagebox(title="Ακύρωση", message="Η αποθήκευση ρυθμίσεων ακυρώθηκε.", icon="warning")
+                    return
+
+        # Parse the availability string into a dictionary
+        availability_dict = parse_availability(availability)
+
+        preferences = {
+            "availability": availability_dict,
+            "timer_pref": timer_pref,
+            "study_time": study_time,
+            "goal": goal,
+            "notifications": notif,
+            "daily_target": daily_target_int,
+            "no_back_to_back": no_back_to_back
+        }
+        with open("user_preferences.json", "w", encoding="utf-8") as f:
+            json.dump(preferences, f, ensure_ascii=False, indent=2)
+        CTkMessagebox(
+            title="Ρυθμίσεις",
+            message=(
+                f"Οι ρυθμίσεις αποθηκεύτηκαν:\n\n"
+                f"Διαθεσιμότητα: {availability}\n"
+                f"Χρονομέτρηση: {timer_pref}\n"
+                f"Ώρα Μελέτης: {study_time}\n"
+                f"Στόχος: {goal}\n"
+                f"Υπενθυμίσεις: {'Ναι' if notif else 'Όχι'}\n"
+                f"Ημερήσιος στόχος: {daily_target_int} λεπτά\n"
+                f"Όχι το ίδιο μάθημα συνεχόμενα: {'Ναι' if no_back_to_back else 'Όχι'}"
+            ),
+            icon="check"
+        )
+
+"""
+    def save_settings(self, availability, timer_pref, study_time, goal, notif, daily_target, no_back_to_back):
         while True:
             try:
                 daily_target_int = int(daily_target)
@@ -302,6 +407,10 @@ class CourseUI:
             ),
             icon="check"
         )
+"""
+
+
+        
    # @staticmethod
     # def save_settings(availability, timer_pref, study_time, goal, notif, daily_target, no_back_to_back):
     #     # Defensive programming for daily_target using CTkInputDialog

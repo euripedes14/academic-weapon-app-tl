@@ -9,5 +9,15 @@
       "password": "123",
       "username": "AlienUser123"
     }
+  },
+  "mitsi": {
+    "profile": {
+      "username": "mitsi",
+      "pronouns": null
+    },
+    "account": {
+      "email": null,
+      "password": "dimitra134340"
+    }
   }
 }
