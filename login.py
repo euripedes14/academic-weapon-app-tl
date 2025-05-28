@@ -59,14 +59,24 @@ class LoginScreen(BaseScreen):
         from signup_screen import SignUpScreen
         SignUpScreen(self.root)
 
-def login_app():
-    """Launch the Login screen."""
-    root = ctk.CTk()
-    ctk.set_default_color_theme("themes/breeze.json")
-    ctk.set_appearance_mode("light")
-    root.state("zoomed")  # <-- Προσθήκη για full screen
-    app = LoginScreen(root)
-    root.mainloop()
+def login_app(parent=None):
+    if parent is not None:
+        # Δημιουργία login ως Toplevel πάνω στο υπάρχον root
+        login_window = ctk.CTkToplevel(parent)
+        login_window.title("Login")
+        login_window.state("zoomed")
+        from login import LoginScreen
+        LoginScreen(login_window)
+        login_window.grab_set()
+        login_window.focus_force()
+    else:
+        root = ctk.CTk()
+        ctk.set_default_color_theme("themes/breeze.json")
+        ctk.set_appearance_mode("light")
+        root.state("zoomed")
+        from login import LoginScreen
+        LoginScreen(root)
+        root.mainloop()
 
 if __name__ == "__main__":
     login_app()

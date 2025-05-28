@@ -40,17 +40,26 @@ SEMESTER_PERIODS = {
 
 class CourseManager:
     """Handles loading, saving, and toggling courses."""
-    def __init__(self):
+    def __init__(self, username=None):
         self.selected_courses = []
         self.semesters_data = self.load_semesters_from_excel()
+        self.username = username
+        self.subjects_file = "user_subjects.json"
 
     def load_semesters_from_excel(self):
         base_dir = os.path.dirname(os.path.abspath(__file__))
         excel_path = os.path.join(base_dir, "ceid_courses.xlsx")
-        wb = openpyxl.load_workbook(excel_path)
-        sheet = wb.active
+        try:
+            wb = openpyxl.load_workbook(excel_path)
+            sheet = wb.active
+        except Exception as e:
+            CTkMessagebox(title="Σφάλμα", message=f"Αποτυχία φόρτωσης αρχείου Excel:\n{e}", icon="cancel")
+            return {}
         data = {}
         self.course_hours = {}
+        if sheet is None:
+            CTkMessagebox(title="Σφάλμα", message="Το φύλλο εργασίας Excel δεν βρέθηκε.", icon="cancel")
+            return {}
         for row in sheet.iter_rows(min_row=2, values_only=True):
             sem = row[3]
             course_name = row[1]
@@ -65,9 +74,17 @@ class CourseManager:
 
     def save_courses(self):
         chosen = [course for course, var in self.selected_courses if var.get()]
-        with open("chosen_subjects.txt", "w", encoding="utf-8") as f:
-            for course in chosen:
-                f.write(course + "\n")
+        data = {}
+        if os.path.exists(self.subjects_file):
+            with open(self.subjects_file, "r", encoding="utf-8") as f:
+                try:
+                    data = json.load(f)
+                except Exception:
+                    data = {}
+        key = self.username if self.username else "default"
+        data[key] = chosen
+        with open(self.subjects_file, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
         CTkMessagebox(
             title="Αποθήκευση",
             message=f"Αποθηκεύτηκαν {len(chosen)} μαθήματα.\n\n{', '.join(chosen)}",
@@ -75,12 +92,16 @@ class CourseManager:
         )
         return chosen
 
-    @staticmethod
-    def load_chosen_subjects():
-        try:
-            with open("chosen_subjects.txt", "r", encoding="utf-8") as f:
-                return [line.strip() for line in f if line.strip()]
-        except FileNotFoundError:
+    def load_chosen_subjects(self):
+        key = self.username if self.username else "default"
+        if os.path.exists(self.subjects_file):
+            with open(self.subjects_file, "r", encoding="utf-8") as f:
+                try:
+                    data = json.load(f)
+                    return data.get(key, [])
+                except Exception:
+                    return []
+        else:
             return []
         
     def get_selected_subjects_with_hours(self):
@@ -122,10 +143,11 @@ class CourseManager:
 
 class CourseUI:
     """Handles the UI for course selection and tab switching."""
-    def __init__(self, parent_frame, app_root=None):
-        self.manager = CourseManager()
+    def __init__(self, parent_frame, app_root=None, username=None):
+        self.manager = CourseManager(username=username)
         self.parent_frame = parent_frame
         self.app_root = app_root
+        self.username = username
         self.setup_ui()
 
     def setup_ui(self):
@@ -197,95 +219,130 @@ class CourseUI:
         settings_frame.pack(fill="x", pady=20, padx=20)
         settings_title = ctk.CTkLabel(settings_frame, text="Ρυθμίσεις", font=("Arial", 14, "bold"), text_color="#000000")
         settings_title.pack(pady=10)
-        # Availability
-        availability_label = ctk.CTkLabel(settings_frame, text="Διαθεσιμότητα Εβδομάδας:", text_color="#000000")
-        availability_label.pack(anchor="w", padx=10, pady=5)
-        availability_var = ctk.StringVar()
-        availability_entry = ctk.CTkEntry(settings_frame, textvariable=availability_var, state="readonly", placeholder_text="Click to select times")
-        availability_entry.pack(fill="x", padx=10, pady=5)
-        # availability_button = ctk.CTkButton(settings_frame, text="Επιλογή Διαθεσιμότητας", command=lambda: AvailabilityCalendar.open_calendar_popup(settings_frame, availability_var), ...)
-
-        def open_availability_popup():
-            popup = ctk.CTkToplevel(settings_frame)
-            popup.title("Επιλογή Διαθεσιμότητας")
-            popup.geometry("400x400")
-            days = ["Δευτέρα", "Τρίτη", "Τετάρτη", "Πέμπτη", "Παρασκευή", "Σάββατο", "Κυριακή"]
-            day_vars = []
-            time_vars = []
-            for day in days:
-                row = ctk.CTkFrame(popup)
-                row.pack(fill="x", padx=10, pady=3)
-                day_var = ctk.BooleanVar()
-                time_var = ctk.StringVar()
-                cb = ctk.CTkCheckBox(row, text=day, variable=day_var)
-                cb.pack(side="left")
-                time_entry = ctk.CTkEntry(row, textvariable=time_var, width=120, placeholder_text="π.χ. 10:00-18:00")
-                time_entry.pack(side="left", padx=10)
-                day_vars.append(day_var)
-                time_vars.append(time_var)
-
-            def set_availability():
-                selections = []
-                for i, day_var in enumerate(day_vars):
-                    if day_var.get():
-                        time_str = time_vars[i].get().strip()
-                        if time_str:
-                            selections.append(f"{days[i]} {time_str}")
-                if selections:
-                    availability_var.set("; ".join(selections))
-                else:
-                    availability_var.set("")
-                popup.destroy()
-
-            ok_btn = ctk.CTkButton(popup, text="OK", command=set_availability)
-            ok_btn.pack(pady=15)
-
-        availability_button = ctk.CTkButton(
-            settings_frame,
-            text="Επιλογή Διαθεσιμότητας",
-            command=open_availability_popup,
-            fg_color="#e0e0e0",
-            text_color="#000000",
-            hover_color="#d6d6d6"
-        )
-        availability_button.pack(pady=5)
-        # Timer preference
-        timer_label = ctk.CTkLabel(settings_frame, text="Προτίμηση Χρονομέτρου:", text_color="#000000")
+        import os
+        import json
+        if self.username:
+            pref_path = f"user_preferences_{self.username}.json"
+        else:
+            pref_path = "user_preferences_default.json"
+        # --- Load user preferences if exist ---
+        user_prefs = {}
+        username = self.username if self.username else "default"
+        pref_path = "user_preferences.json"
+        if os.path.exists(pref_path):
+            try:
+                with open(pref_path, "r", encoding="utf-8") as f:
+                    all_prefs = json.load(f)
+                    # Ensure username is str and not accidentally int
+                    user_prefs = all_prefs.get(str(username), {})
+            except Exception:
+                user_prefs = {}
+        # --- Availability UI with time dropdowns ---
+        from datetime import time
+        def time_options(start=0, end=24):
+            # Returns list of HH:MM strings from start to end (step 30min)
+            opts = []
+            for h in range(start, end):
+                opts.append(f"{h:02d}:00")
+                opts.append(f"{h:02d}:30")
+            opts.append(f"{end:02d}:00")
+            return opts
+        days = ["Δευτέρα", "Τρίτη", "Τετάρτη", "Πέμπτη", "Παρασκευή", "Σάββατο", "Κυριακή"]
+        self.availability_vars = {}
+        for day in days:
+            frame = ctk.CTkFrame(settings_frame)
+            frame.pack(fill="x", padx=10, pady=2)
+            ctk.CTkLabel(frame, text=day, width=80).pack(side="left")
+            slots = []
+            prev_end_idx = 0
+            for i in range(3):
+                start_var = ctk.StringVar()
+                end_var = ctk.StringVar()
+                start_menu = ctk.CTkComboBox(frame, values=time_options(), variable=start_var, width=70)
+                end_menu = ctk.CTkComboBox(frame, values=time_options(), variable=end_var, width=70)
+                start_menu.pack(side="left", padx=2)
+                ctk.CTkLabel(frame, text="-").pack(side="left")
+                end_menu.pack(side="left", padx=2)
+                def update_end_menu(event=None, s_var=start_var, e_menu=end_menu):
+                    val = s_var.get()
+                    if val:
+                        idx = time_options().index(val)
+                        e_menu.configure(values=time_options(idx+1))
+                        # Reset end if out of range
+                        if e_menu.get() and time_options(idx+1).index(e_menu.get()) < 0:
+                            e_menu.set("")
+                start_menu.bind("<<ComboboxSelected>>", update_end_menu)
+                # For next slot, update start options based on previous end
+                if i > 0:
+                    def update_start_menu(event=None, prev_e_var=slots[i-1][1], s_menu=start_menu):
+                        val = prev_e_var.get()
+                        if val:
+                            idx = time_options().index(val)
+                            s_menu.configure(values=time_options(idx+1))
+                            if s_menu.get() and time_options(idx+1).index(s_menu.get()) < 0:
+                                s_menu.set("")
+                    slots[i-1][1].trace_add('write', update_start_menu)
+                slots.append((start_var, end_var))
+            self.availability_vars[day] = slots
+            # Fill from user_prefs if available
+            if user_prefs.get("availability", {}).get(day):
+                for idx, time_range in enumerate(user_prefs["availability"][day]):
+                    if idx < 3:
+                        try:
+                            start, end = time_range.split("-")
+                            slots[idx][0].set(start.strip())
+                            slots[idx][1].set(end.strip())
+                        except Exception:
+                            pass
+        # --- Timer preference ---
+        timer_label = ctk.CTkLabel(settings_frame, text="Επιλογή Χρονομέτρου:", text_color="#000000")
         timer_label.pack(anchor="w", padx=10, pady=5)
-        timer_pref_var = ctk.StringVar(value="stopwatch")
-        timer_options = ["stopwatch", "pomodoro"]
-        timer_menu = ctk.CTkComboBox(settings_frame, values=timer_options, variable=timer_pref_var)
-        timer_menu.pack(fill="x", padx=10, pady=5)
-        # Preferred study time
+        timer_type_var = ctk.StringVar(value=user_prefs.get("timer_type", "stopwatch"))
+        timer_minutes_var = ctk.StringVar(value=str(user_prefs.get("timer_minutes", 25)))
+        pomodoro_sessions_var = ctk.StringVar(value=str(user_prefs.get("pomodoro_sessions", 4)))
+        timer_frame = ctk.CTkFrame(settings_frame)
+        timer_frame.pack(fill="x", padx=10, pady=2)
+        def on_timer_type_change(*_):
+            if timer_type_var.get() == "stopwatch":
+                timer_minutes_entry.configure(state="normal")
+                pomodoro_sessions_entry.configure(state="disabled")
+            else:
+                timer_minutes_entry.configure(state="disabled")
+                pomodoro_sessions_entry.configure(state="normal")
+        ctk.CTkRadioButton(timer_frame, text="Κανονικό Χρονόμετρο", variable=timer_type_var, value="stopwatch", command=on_timer_type_change).pack(side="left", padx=5)
+        timer_minutes_entry = ctk.CTkEntry(timer_frame, textvariable=timer_minutes_var, width=60, placeholder_text="Λεπτά")
+        timer_minutes_entry.pack(side="left", padx=5)
+        ctk.CTkRadioButton(timer_frame, text="Pomodoro", variable=timer_type_var, value="pomodoro", command=on_timer_type_change).pack(side="left", padx=5)
+        pomodoro_sessions_entry = ctk.CTkEntry(timer_frame, textvariable=pomodoro_sessions_var, width=60, placeholder_text="Sessions")
+        pomodoro_sessions_entry.pack(side="left", padx=5)
+        # Set initial state
+        on_timer_type_change()
+        # --- Other settings (unchanged, but loaded/saved per user) ---
+        study_time_var = ctk.StringVar(value=user_prefs.get("study_time", "Afternoon"))
         study_time_label = ctk.CTkLabel(settings_frame, text="Προτιμώμενη Ώρα Μελέτης:", text_color="#000000")
         study_time_label.pack(anchor="w", padx=10, pady=5)
-        study_time_var = ctk.StringVar(value="Afternoon")
         study_time_options = ["Morning", "Afternoon", "Evening", "Night"]
         study_time_menu = ctk.CTkComboBox(settings_frame, values=study_time_options, variable=study_time_var)
         study_time_menu.pack(fill="x", padx=10, pady=5)
-        # Study goal
+        goal_var = ctk.StringVar(value=user_prefs.get("goal", "Get a pass"))
         goal_label = ctk.CTkLabel(settings_frame, text="Στόχος Μελέτης:", text_color="#000000")
         goal_label.pack(anchor="w", padx=10, pady=5)
-        goal_var = ctk.StringVar(value="Get a pass")
         goal_options = ["Get a pass", "Ace my exams", "Understand material", "Keep up with assignments"]
         goal_menu = ctk.CTkComboBox(settings_frame, values=goal_options, variable=goal_var)
         goal_menu.pack(fill="x", padx=10, pady=5)
-        # Notification preference
+        notif_var = ctk.BooleanVar(value=user_prefs.get("notifications", True))
         notif_label = ctk.CTkLabel(settings_frame, text="Υπενθυμίσεις:", text_color="#000000")
         notif_label.pack(anchor="w", padx=10, pady=5)
-        notif_var = ctk.BooleanVar(value=True)
         notif_checkbox = ctk.CTkCheckBox(settings_frame, text="Ενεργοποίηση Υπενθυμίσεων", variable=notif_var, bg_color="#f9f9f9")
         notif_checkbox.pack(anchor="w", padx=10, pady=5)
-        # Daily study target
+        daily_target_var = ctk.StringVar(value=str(user_prefs.get("daily_target", 90)))
         daily_target_label = ctk.CTkLabel(settings_frame, text="Ημερήσιος Στόχος Μελέτης (λεπτά):", text_color="#000000")
         daily_target_label.pack(anchor="w", padx=10, pady=5)
-        daily_target_var = ctk.StringVar()
         daily_target_entry = ctk.CTkEntry(settings_frame, textvariable=daily_target_var, placeholder_text="π.χ. 90")
         daily_target_entry.pack(fill="x", padx=10, pady=5)
-        # No back-to-back
+        no_back_to_back_var = ctk.BooleanVar(value=user_prefs.get("no_back_to_back", False))
         preferences_label = ctk.CTkLabel(settings_frame, text="Προτιμήσεις Χρήστη:", text_color="#000000")
         preferences_label.pack(anchor="w", padx=10, pady=5)
-        no_back_to_back_var = ctk.BooleanVar()
         no_back_to_back_checkbox = ctk.CTkCheckBox(settings_frame, text="Όχι το ίδιο μάθημα συνεχόμενα", variable=no_back_to_back_var, bg_color="#f9f9f9")
         no_back_to_back_checkbox.pack(anchor="w", padx=10, pady=5)
         # Save button
@@ -293,8 +350,10 @@ class CourseUI:
             settings_frame,
             text="Αποθήκευση Ρυθμίσεων",
             command=lambda: self.save_settings(
-                availability_var.get(),
-                timer_pref_var.get(),
+                self.get_availability_dict(),
+                timer_type_var.get(),
+                timer_minutes_var.get(),
+                pomodoro_sessions_var.get(),
                 study_time_var.get(),
                 goal_var.get(),
                 notif_var.get(),
@@ -304,20 +363,31 @@ class CourseUI:
             fg_color="#e0e0e0", text_color="#000000", hover_color="#d6d6d6"
         )
         save_settings_button.pack(pady=10)
+    def get_availability_dict(self):
+        result = {}
+        for day, slots in self.availability_vars.items():
+            times = []
+            for start_var, end_var in slots:
+                start = start_var.get().strip()
+                end = end_var.get().strip()
+                if start and end:
+                    times.append(f"{start}-{end}")
+            if times:
+                result[day] = times
+        return result
 
-    def save_settings(self, availability, timer_pref, study_time, goal, notif, daily_target, no_back_to_back):
-        def parse_availability(availability_str):
-            result = {}
-            for entry in availability_str.split(";"):
-                entry = entry.strip()
-                if not entry:
-                    continue
-                parts = entry.split(" ", 1)
-                if len(parts) == 2:
-                    day, times = parts
-                    result.setdefault(day, []).append(times)
-            return result
-
+    def save_settings(self, availability, timer_type, timer_minutes, pomodoro_sessions, study_time, goal, notif, daily_target, no_back_to_back):
+        # Save all settings for all users in one file, keyed by username
+        pref_path = "user_preferences.json"
+        all_prefs = {}
+        if os.path.exists(pref_path):
+            try:
+                with open(pref_path, "r", encoding="utf-8") as f:
+                    all_prefs = json.load(f)
+            except Exception:
+                all_prefs = {}
+        username = self.username if self.username else "default"
+        # Validate daily_target
         while True:
             try:
                 daily_target_int = int(daily_target)
@@ -334,71 +404,38 @@ class CourseUI:
                 if daily_target is None or daily_target == "":
                     CTkMessagebox(title="Ακύρωση", message="Η αποθήκευση ρυθμίσεων ακυρώθηκε.", icon="warning")
                     return
-
-        # Parse the availability string into a dictionary
-        availability_dict = parse_availability(availability)
-
-        preferences = {
-            "availability": availability_dict,
-            "timer_pref": timer_pref,
-            "study_time": study_time,
-            "goal": goal,
-            "notifications": notif,
-            "daily_target": daily_target_int,
-            "no_back_to_back": no_back_to_back
-        }
-        with open("user_preferences.json", "w", encoding="utf-8") as f:
-            json.dump(preferences, f, ensure_ascii=False, indent=2)
-        CTkMessagebox(
-            title="Ρυθμίσεις",
-            message=(
-                f"Οι ρυθμίσεις αποθηκεύτηκαν:\n\n"
-                f"Διαθεσιμότητα: {availability}\n"
-                f"Χρονομέτρηση: {timer_pref}\n"
-                f"Ώρα Μελέτης: {study_time}\n"
-                f"Στόχος: {goal}\n"
-                f"Υπενθυμίσεις: {'Ναι' if notif else 'Όχι'}\n"
-                f"Ημερήσιος στόχος: {daily_target_int} λεπτά\n"
-                f"Όχι το ίδιο μάθημα συνεχόμενα: {'Ναι' if no_back_to_back else 'Όχι'}"
-            ),
-            icon="check"
-        )
-
-"""
-    def save_settings(self, availability, timer_pref, study_time, goal, notif, daily_target, no_back_to_back):
-        while True:
-            try:
-                daily_target_int = int(daily_target)
-                if daily_target_int <= 0:
-                    raise ValueError
-                break
-            except Exception:
-                input_dialog = CTkInputDialog(
-                    None,
-                    "Λανθασμένη τιμή",
-                    "Παρακαλώ εισάγετε έναν θετικό αριθμό για τον ημερήσιο στόχο μελέτης (λεπτά):"
-                )
-                daily_target = input_dialog.value
-                if daily_target is None or daily_target == "":
-                    CTkMessagebox(title="Ακύρωση", message="Η αποθήκευση ρυθμίσεων ακυρώθηκε.", icon="warning")
-                    return
+        # Validate timer_minutes and pomodoro_sessions
+        try:
+            timer_minutes_int = int(timer_minutes)
+        except Exception:
+            timer_minutes_int = 25
+        try:
+            pomodoro_sessions_int = int(pomodoro_sessions)
+        except Exception:
+            pomodoro_sessions_int = 4
         preferences = {
             "availability": availability,
-            "timer_pref": timer_pref,
+            "timer_type": timer_type,
+            "timer_minutes": timer_minutes_int,
+            "pomodoro_sessions": pomodoro_sessions_int,
             "study_time": study_time,
             "goal": goal,
             "notifications": notif,
             "daily_target": daily_target_int,
             "no_back_to_back": no_back_to_back
         }
-        with open("user_preferences.json", "w", encoding="utf-8") as f:
-            json.dump(preferences, f, ensure_ascii=False, indent=2)
+        # Καθαρισμός παλιού format (αν υπάρχει) ώστε να υπάρχουν μόνο keys με usernames
+        # Αν βρεθούν keys που δεν είναι usernames, τα αγνοούμε
+        all_prefs = {k: v for k, v in all_prefs.items() if isinstance(v, dict)}
+        all_prefs[username] = preferences
+        with open(pref_path, "w", encoding="utf-8") as f:
+            json.dump(all_prefs, f, ensure_ascii=False, indent=2)
         CTkMessagebox(
             title="Ρυθμίσεις",
             message=(
-                f"Οι ρυθμίσεις αποθηκεύτηκαν:\n\n"
+                f"Οι ρυθμίσεις αποθηκεύτηκαν!\n\n"
                 f"Διαθεσιμότητα: {availability}\n"
-                f"Χρονομέτρηση: {timer_pref}\n"
+                f"Χρονομέτρηση: {timer_type} ({timer_minutes_int} λεπτά ή {pomodoro_sessions_int} sessions)\n"
                 f"Ώρα Μελέτης: {study_time}\n"
                 f"Στόχος: {goal}\n"
                 f"Υπενθυμίσεις: {'Ναι' if notif else 'Όχι'}\n"
@@ -407,53 +444,4 @@ class CourseUI:
             ),
             icon="check"
         )
-"""
-
-
-        
-   # @staticmethod
-    # def save_settings(availability, timer_pref, study_time, goal, notif, daily_target, no_back_to_back):
-    #     # Defensive programming for daily_target using CTkInputDialog
-    #     while True:
-    #         try:
-    #             daily_target_int = int(daily_target)
-    #             if daily_target_int <= 0:
-    #                 raise ValueError
-    #             break
-    #         except Exception:
-    #             input_dialog = CTkInputDialog(
-    #                 None,
-    #                 "Λανθασμένη τιμή",
-    #                 "Παρακαλώ εισάγετε έναν θετικό αριθμό για τον ημερήσιο στόχο μελέτης (λεπτά):"
-    #             )
-    #             daily_target = input_dialog.value
-    #             if daily_target is None or daily_target == "":
-    #                 CTkMessagebox(title="Ακύρωση", message="Η αποθήκευση ρυθμίσεων ακυρώθηκε.", icon="warning")
-    #                 return
-
-    #     # Save to a file for persistence
-    #     with open("user_timer_pref.txt", "w", encoding="utf-8") as f:
-    #         f.write(f"{timer_pref}\n")
-    #     with open("user_preferences.txt", "w", encoding="utf-8") as f:
-    #         f.write(f"availability={availability}\n")
-    #         f.write(f"timer_pref={timer_pref}\n")
-    #         f.write(f"study_time={study_time}\n")
-    #         f.write(f"goal={goal}\n")
-    #         f.write(f"notifications={'on' if notif else 'off'}\n")
-    #         f.write(f"daily_target={daily_target_int}\n")
-    #         f.write(f"no_back_to_back={'yes' if no_back_to_back else 'no'}\n")
-    #     CTkMessagebox(
-    #         title="Ρυθμίσεις",
-    #         message=(
-    #             f"Οι ρυθμίσεις αποθηκεύτηκαν:\n\n"
-    #             f"Διαθεσιμότητα: {availability}\n"
-    #             f"Χρονομέτρηση: {timer_pref}\n"
-    #             f"Ώρα Μελέτης: {study_time}\n"
-    #             f"Στόχος: {goal}\n"
-    #             f"Υπενθυμίσεις: {'Ναι' if notif else 'Όχι'}\n"
-    #             f"Ημερήσιος στόχος: {daily_target_int} λεπτά\n"
-    #             f"Όχι το ίδιο μάθημα συνεχόμενα: {'Ναι' if no_back_to_back else 'Όχι'}"
-    #         ),
-    #         icon="check"
-    #     )
 

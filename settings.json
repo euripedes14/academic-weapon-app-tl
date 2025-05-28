@@ -19,5 +19,24 @@
       "email": null,
       "password": "dimitra134340"
     }
+  },
+  "test": {
+    "profile": {
+      "username": "test"
+    },
+    "account": {
+      "email": null,
+      "password": "123"
+    }
+  },
+  "τεστ": {
+    "profile": {
+      "username": "τεστ",
+      "pronouns": null
+    },
+    "account": {
+      "email": null,
+      "password": "123"
+    }
   }
 }

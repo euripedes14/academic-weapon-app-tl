@@ -38,63 +38,47 @@ class StopwatchTimer:
         self.seconds_input.pack(side="left", padx=5)
         self.seconds_input.insert(0, "00")
 
-        speed_frame = ctk.CTkFrame(self.frame)
-        speed_frame.pack(pady=10)
-        ctk.CTkLabel(speed_frame, text="Επιτάχυνση:", font=("Arial", 12)).pack(side="left", padx=5)
-        self.speed_var = ctk.StringVar(value="x1")
-        self.speed_menu = ctk.CTkComboBox(speed_frame, variable=self.speed_var, values=["x1", "x2", "x4", "x8", "x16"], width=80, command=self.update_speed)
-        self.speed_menu.pack(side="left", padx=5)
-
         button_frame = ctk.CTkFrame(self.frame)
         button_frame.pack(pady=10)
-        self.start_button = ctk.CTkButton(button_frame, text="Έναρξη", width=120, command=self.toggle_timer)
-        self.start_button.pack(side="left", padx=5)
+        self.pause_button = ctk.CTkButton(button_frame, text="Παύση", width=120, command=self.pause_timer)
+        self.pause_button.pack(side="left", padx=5)
         reset_button = ctk.CTkButton(button_frame, text="Επαναφορά", width=120, command=self.reset_timer)
         reset_button.pack(side="left", padx=5)
 
-    def update_speed(self, value=None):
-        speed_str = self.speed_var.get()
-        self.speed = int(speed_str[1:])
-
-    def toggle_timer(self):
-        try:
-            hours = int(self.hours_input.get())
-            minutes = int(self.minutes_input.get())
-            seconds = int(self.seconds_input.get())
-            if hours < 0 or minutes < 0 or seconds < 0:
-                raise ValueError
-            self.elapsed_seconds = hours * 3600 + minutes * 60 + seconds
-            if self.elapsed_seconds <= 0:
-                raise ValueError
-        except ValueError:
-            messagebox.showwarning("Μη έγκυρη Εισαγωγή", "Παρακαλώ εισάγετε έγκυρους θετικούς ακέραιους αριθμούς για ώρες, λεπτά και δευτερόλεπτα.")
+    def start_timer(self, hours=0, minutes=0, seconds=0):
+        self.elapsed_seconds = hours * 3600 + minutes * 60 + seconds
+        if self.elapsed_seconds <= 0:
+            self.time_display.configure(text="00:00:00")
             return
+        self.is_running = True
+        self.update_timer()
 
-        self.is_running = not self.is_running
-        if self.is_running:
-            self.start_button.configure(text="Παύση")
-            self.update_timer()
-        else:
-            self.start_button.configure(text="Συνέχεια")
+    def pause_timer(self):
+        self.is_running = False
+        self.pause_button.configure(text="Συνέχεια", command=self.resume_timer)
+
+    def resume_timer(self):
+        self.is_running = True
+        self.pause_button.configure(text="Παύση", command=self.pause_timer)
+        self.update_timer()
 
     def update_timer(self):
         if not self.is_running:
             return
         if self.elapsed_seconds <= 0:
             self.is_running = False
-            self.start_button.configure(text="Έναρξη")
+            self.time_display.configure(text="00:00:00")
             messagebox.showinfo("Ειδοποίηση", "Ο χρονομετρητής έληξε!")
             return
-        self.elapsed_seconds -= self.speed
         hours, remainder = divmod(self.elapsed_seconds, 3600)
         minutes, seconds = divmod(remainder, 60)
         self.time_display.configure(text=f"{hours:02d}:{minutes:02d}:{seconds:02d}")
-        self.parent.after(1000 // self.speed, self.update_timer)
+        self.elapsed_seconds -= 1
+        self.parent.after(1000, self.update_timer)
 
     def reset_timer(self):
         self.is_running = False
         self.elapsed_seconds = 0
-        self.start_button.configure(text="Έναρξη")
         self.time_display.configure(text="00:00:00")
         self.hours_input.delete(0, "end")
         self.hours_input.insert(0, "00")
@@ -102,3 +86,4 @@ class StopwatchTimer:
         self.minutes_input.insert(0, "00")
         self.seconds_input.delete(0, "end")
         self.seconds_input.insert(0, "00")
+        self.pause_button.configure(text="Παύση", command=self.pause_timer)

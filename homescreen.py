@@ -147,7 +147,7 @@ class HomeScreen:
 
     def open_courses(self):
         self.clear_content()
-        CourseUI(self.content_frame)
+        CourseUI(self.content_frame, username=self.username)
 
     def show_nutrition(self):
         self.clear_content()
@@ -174,17 +174,8 @@ class HomeScreen:
         ExpenseTrackerApp(self.content_frame)
 
     def logout(self):
-        answer = CTkMessagebox(
-            title="Αποσύνδεση",
-            message="Είστε σίγουροι ότι θέλετε να αποσυνδεθείτε;\nWe will be sad to see you go :c",
-            icon="question",
-            option_1="Ναι",
-            option_2="Όχι"
-        ).get()
-        if answer == "Ναι":
-            self.root.destroy()
-            from login import login_app
-            login_app()
+        from logout import logout_and_login
+        logout_and_login(self.root)
 
 def on_closing():
     # Cancel any scheduled callbacks here if you have their IDs

@@ -7,10 +7,12 @@ import json
 
 
 class ZoneInScreen:
-    def __init__(self, parent):
+    def __init__(self, parent, username):
         self.parent = parent
+        self.username = username
         self.checked_in = False
-        self.chosen_subjects = CourseManager.load_chosen_subjects()
+        self.manager = CourseManager(username=username)
+        self.chosen_subjects = self.manager.load_chosen_subjects()
 
         self.main_frame = ctk.CTkFrame(parent)
         self.main_frame.pack(fill="both", expand=True)
@@ -22,7 +24,7 @@ class ZoneInScreen:
         # Subject selection menu under header
         self.subjects_frame = ctk.CTkFrame(self.main_frame)
         self.subjects_frame.pack(fill="x", padx=20, pady=10)
-        self.selected_subject_vars = []
+        self.selected_subjects = []
         self.show_subjects_menu()
 
         # Check-in/out buttons
@@ -59,10 +61,10 @@ class ZoneInScreen:
             var = ctk.BooleanVar()
             cb = ctk.CTkCheckBox(self.subjects_frame, text=subj, variable=var)
             cb.pack(anchor="w", padx=20)
-            self.selected_subject_vars.append((subj, var))
+            self.selected_subjects.append((subj, var))
 
     def check_in(self):
-        selected_subjects = [subject for subject, var in self.selected_subject_vars if var.get()]
+        selected_subjects = [subject for subject, var in self.selected_subjects if var.get()]
         if not selected_subjects:
             CTkMessagebox(title="Δεν έχεις επιλέξει μάθημα", message="Πρέπει να επιλέξεις τουλάχιστον ένα μάθημα πριν κάνεις check-in.", icon="warning")
             return
@@ -71,38 +73,26 @@ class ZoneInScreen:
             self.checked_in = True
             self.checkin_btn.configure(state="disabled")
             self.checkout_btn.configure(state="normal")
-            # Read timer preference
-            # timer_pref = "stopwatch"
-            # try:
-            #     with open("user_timer_pref.txt", "r") as f:
-            #         timer_pref = f.read().strip()
-            # except FileNotFoundError:
-            #     pass  # Default to stopwatch if not set
+            # Διαβάζω τις ρυθμίσεις timer του χρήστη
             try:
                 with open("user_preferences.json", "r", encoding="utf-8") as f:
                     prefs = json.load(f)
-                    timer_pref = prefs.get("timer_pref", "stopwatch")
+                    user_prefs = prefs.get(self.username, prefs.get("default", {}))
+                    timer_type = user_prefs.get("timer_type", "stopwatch")
+                    timer_minutes = user_prefs.get("timer_minutes", 25)
+                    pomodoro_sessions = user_prefs.get("pomodoro_sessions", 4)
             except Exception:
-                timer_pref = "stopwatch"
+                timer_type = "stopwatch"
+                timer_minutes = 25
+                pomodoro_sessions = 4
 
-            if timer_pref == "pomodoro":
-                # Reset Pomodoro timer and start it
+            if timer_type == "pomodoro":
                 self.pomodoro.reset_timer()
-                self.pomodoro.session_input.delete(0, "end")
-                self.pomodoro.session_input.insert(0, "1")
-                if not self.pomodoro.is_running:
-                    self.pomodoro.toggle_timer()
+                self.pomodoro.start_timer(sessions=pomodoro_sessions, work_minutes=timer_minutes)
                 CTkMessagebox(title="Check-In", message="Έκανες check-in! Ξεκίνησε το Pomodoro!", icon="check")
-            elif timer_pref == "stopwatch":
-                # Set StopwatchTimer to 30 minutes and start it
-                self.stopwatch.hours_input.delete(0, "end")
-                self.stopwatch.hours_input.insert(0, "00")
-                self.stopwatch.minutes_input.delete(0, "end")
-                self.stopwatch.minutes_input.insert(0, "30")
-                self.stopwatch.seconds_input.delete(0, "end")
-                self.stopwatch.seconds_input.insert(0, "00")
-                if not self.stopwatch.is_running:
-                    self.stopwatch.toggle_timer()
+            elif timer_type == "stopwatch":
+                self.stopwatch.reset_timer()
+                self.stopwatch.start_timer(hours=0, minutes=timer_minutes, seconds=0)
                 CTkMessagebox(title="Check-In", message="Έκανες check-in! Καλή μελέτη!", icon="check")
             else:
                 CTkMessagebox(title="Check-In", message="Έχεις ήδη κάνει check-in.", icon="info")
@@ -110,40 +100,70 @@ class ZoneInScreen:
             CTkMessagebox(title="Check-In", message="Έχεις ήδη κάνει check-in.", icon="info")
 
     def check_out(self):
-        if self.checked_in:
+        if not self.checked_in:
+            CTkMessagebox(title="Check-Out", message="Πρέπει να κάνεις πρώτα check-in.", icon="info")
+            return
+        # Διαβάζω τις ρυθμίσεις timer του χρήστη
+        try:
+            with open("user_preferences.json", "r", encoding="utf-8") as f:
+                prefs = json.load(f)
+                user_prefs = prefs.get(self.username, prefs.get("default", {}))
+                timer_type = user_prefs.get("timer_type", "stopwatch")
+                timer_minutes = user_prefs.get("timer_minutes", 25)
+                pomodoro_sessions = user_prefs.get("pomodoro_sessions", 4)
+        except Exception:
+            timer_type = "stopwatch"
+            timer_minutes = 25
+            pomodoro_sessions = 4
+
+        if timer_type == "pomodoro":
+            pomodoro_incomplete = (
+                hasattr(self.pomodoro, 'total_sessions') and hasattr(self.pomodoro, 'completed_sessions') and
+                self.pomodoro.completed_sessions < self.pomodoro.total_sessions
+            )
+            if self.pomodoro.is_running or pomodoro_incomplete:
+                self.pomodoro.reset_timer()
+                self.checked_in = False
+                self.checkin_btn.configure(state="normal")
+                self.checkout_btn.configure(state="disabled")
+                CTkMessagebox(title="Προειδοποίηση", message="Δεν ολοκλήρωσες όλες τις συνεδρίες Pomodoro. Θα χαθούν τα streaks!", icon="warning")
+            else:
+                self.pomodoro.reset_timer()
+                self.checked_in = False
+                self.checkin_btn.configure(state="normal")
+                self.checkout_btn.configure(state="disabled")
+                CTkMessagebox(title="Συγχαρητήρια!", message="Συγχαρητήρια! Πήρες το streak σου!", icon="check")
+        elif timer_type == "stopwatch":
             if self.stopwatch.is_running and self.stopwatch.elapsed_seconds > 0:
                 self.stopwatch.reset_timer()
                 self.checked_in = False
                 self.checkin_btn.configure(state="normal")
                 self.checkout_btn.configure(state="disabled")
                 CTkMessagebox(title="Προειδοποίηση", message="Θα χάσεις το streak σου!", icon="warning")
-            elif self.stopwatch.elapsed_seconds == 0:
-                self.checked_in = False
-                self.checkin_btn.configure(state="normal")
-                self.checkout_btn.configure(state="disabled")
-                CTkMessagebox(title="Συγχαρητήρια!", message="Συγχαρητήρια! Πήρες το streak σου!", icon="check")
-            elif self.pomodoro.is_running and self.pomodoro.elapsed_seconds > 0:
-                self.pomodoro.reset_timer()
-                self.checked_in = False
-                self.checkin_btn.configure(state="normal")
-                self.checkout_btn.configure(state="disabled")
-                CTkMessagebox(title="Προειδοποίηση", message="Θα χάσεις το streak σου!", icon="warning")
-            elif self.pomodoro.elapsed_seconds == 0:
+            elif not self.stopwatch.is_running and self.stopwatch.elapsed_seconds == 0:
+                self.stopwatch.reset_timer()
                 self.checked_in = False
                 self.checkin_btn.configure(state="normal")
                 self.checkout_btn.configure(state="disabled")
                 CTkMessagebox(title="Συγχαρητήρια!", message="Συγχαρητήρια! Πήρες το streak σου!", icon="check")
             else:
-                # fallback for any other case
+                self.stopwatch.reset_timer()
                 self.checked_in = False
                 self.checkin_btn.configure(state="normal")
                 self.checkout_btn.configure(state="disabled")
                 CTkMessagebox(title="Check-Out", message="Έκανες check-out!", icon="info")
         else:
-            CTkMessagebox(title="Check-Out", message="Πρέπει να κάνεις πρώτα check-in.", icon="info")
+            # fallback για άγνωστο timer
+            self.stopwatch.reset_timer()
+            self.pomodoro.reset_timer()
+            self.checked_in = False
+            self.checkin_btn.configure(state="normal")
+            self.checkout_btn.configure(state="disabled")
+            CTkMessagebox(title="Check-Out", message="Έκανες check-out!", icon="info")
 
 # Utility function to open the ZoneInScreen
-def open_zonein_screen(parent_frame):
+
+def open_zonein_screen(parent_frame, username="default"):
     for widget in parent_frame.winfo_children():
         widget.destroy()
-    ZoneInScreen(parent_frame)
+    ZoneInScreen(parent_frame, username=username)
