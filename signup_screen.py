@@ -1,3 +1,44 @@
+# Κλάση: SignUpScreen
+# Ρόλος: Υλοποιεί τη φόρμα εγγραφής νέου χρήστη στην εφαρμογή.
+# Κληρονομεί από:
+# BaseScreen (από το login_signup_basescreen.py).
+# Μέθοδοι:
+# __init__(self, root)
+# Αρχικοποιεί την οθόνη εγγραφής, ορίζει τίτλο, προσθέτει πεδίο επιβεβαίωσης κωδικού και τα κουμπιά.
+# add_confirm_password(self)
+# Προσθέτει πεδίο "Confirm Password" στη φόρμα.
+# add_buttons(self)
+# Προσθέτει δύο κουμπιά:
+# "Create Account" (συνδέει με τη μέθοδο self.signup)
+# "Back to Login" (συνδέει με τη μέθοδο self.open_login)
+# signup(self)
+# Ελέγχει αν τα πεδία είναι συμπληρωμένα, αν οι κωδικοί ταιριάζουν και αν το username είναι μοναδικό στο settings.json.
+# Αν όλα είναι σωστά, αποθηκεύει τα στοιχεία στο settings.json και εμφανίζει μήνυμα επιτυχίας.
+# Αν όχι, εμφανίζει μήνυμα λάθους με CTkMessagebox.
+# open_login(self)
+# Επιστρέφει στην οθόνη σύνδεσης (καλεί το LoginScreen από login.py).
+# safe_open_login(self)
+# Destroy μόνο το frame και ανοίγει το LoginScreen.
+# Συνάρτηση:
+# signup_app()
+# Εκκινεί την οθόνη εγγραφής ως κύριο παράθυρο.
+# Διασύνδεση αρχείων
+# login.py ↔ signup_screen.py
+# Η μέθοδος open_signup της LoginScreen ανοίγει το SignUpScreen.
+# Η μέθοδος open_login της SignUpScreen επιστρέφει στο LoginScreen.
+# login.py ↔ navigation.py
+# Μετά από επιτυχή login, καλείται το main_app από το navigation.py για να ξεκινήσει η κύρια εφαρμογή.
+# login.py & signup_screen.py ↔ settings.json
+# Και οι δύο διαβάζουν/γράφουν στο αρχείο settings.json για να ελέγξουν ή να αποθηκεύσουν στοιχεία χρήστη.
+# login.py & signup_screen.py ↔ login_signup_basescreen.py
+# Και οι δύο κληρονομούν από το BaseScreen που παρέχει βασική δομή για τις φόρμες authentication.
+# CTkMessagebox
+# Χρησιμοποιείται και στα δύο αρχεία για εμφάνιση μηνυμάτων επιτυχίας ή σφάλματος.
+# Συνοπτικά:
+# Κάθε κλάση υλοποιεί μια οθόνη authentication (login ή signup). Οι μέθοδοι κάθε κλάσης χειρίζονται τα κουμπιά,
+# τα πεδία και τη ροή δεδομένων μεταξύ των οθονών και του αρχείου ρυθμίσεων. Οι συναρτήσεις εκκινούν τις αντίστοιχες
+# οθόνες ως κύρια ή δευτερεύοντα παράθυρα.
+
 from login_signup_basescreen import BaseScreen
 import customtkinter as ctk
 from CTkMessagebox import CTkMessagebox
@@ -5,9 +46,6 @@ import os
 import json
 
 # ctk.set_default_color_theme("themes/breeze.json")
-
-
-# Example for signup_screen.py
 
 
 class SignUpScreen(BaseScreen):

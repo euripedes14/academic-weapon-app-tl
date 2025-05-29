@@ -1,3 +1,54 @@
+# Κλάση: CourseManager
+# Ρόλος:
+# Διαχειρίζεται τη φόρτωση, αποθήκευση και ανάκτηση μαθημάτων, καθώς και την εξαγωγή δεδομένων για το πρόγραμμα μελέτης.
+
+# Μέθοδοι:
+# __init__(self, username=None)
+# Αρχικοποιεί το αντικείμενο, φορτώνει τα μαθήματα από το Excel, αποθηκεύει το όνομα χρήστη και το path του αρχείου μαθημάτων.
+# load_semesters_from_excel(self)
+# Φορτώνει τα μαθήματα ανά εξάμηνο από το αρχείο ceid_courses.xlsx. Επιστρέφει dictionary με εξάμηνα ως keys και λίστες μαθημάτων ως values.
+# save_courses(self)
+# Αποθηκεύει τα επιλεγμένα μαθήματα του χρήστη στο αρχείο user_subjects.json (keyed by username). Εμφανίζει μήνυμα επιβεβαίωσης με CTkMessagebox.
+# load_chosen_subjects(self)
+# Επιστρέφει τη λίστα μαθημάτων που έχει αποθηκεύσει ο χρήστης (από το user_subjects.json).
+# get_selected_subjects_with_hours(self)
+# Επιστρέφει λίστα από dictionaries με τα επιλεγμένα μαθήματα, τις ώρες μελέτης, εβδομάδες εξαμήνου και πληροφορίες περιόδου. Χρησιμοποιείται για να περαστούν τα δεδομένα στον αλγόριθμο προγραμματισμού μελέτης.
+
+# Κλάση: CourseUI
+# Υλοποιεί το γραφικό περιβάλλον για την επιλογή μαθημάτων και τις ρυθμίσεις μελέτης.
+
+# Μέθοδοι:
+# __init__(self, parent_frame, app_root=None, username=None)
+# Αρχικοποιεί το UI, δημιουργεί instance του CourseManager, καλεί το setup_ui.
+# setup_ui(self)
+# Δημιουργεί το βασικό UI: τίτλο, tabs ("Μαθήματα", "Ρυθμίσεις") και το περιεχόμενο.
+# show_courses_tab(self, content_frame)
+# Εμφανίζει τη λίστα εξαμήνων και μαθημάτων με checkboxes για επιλογή. Κουμπί αποθήκευσης καλεί το save_courses του CourseManager.
+# toggle_courses(sem, course_frame, toggle_button)
+# Εναλλάσσει το άνοιγμα/κλείσιμο της λίστας μαθημάτων κάθε εξαμήνου.
+# show_settings_tab(self, content_frame)
+# Εμφανίζει το UI για τις ρυθμίσεις μελέτης (διαθεσιμότητα, τύπος χρονομέτρου, στόχοι, υπενθυμίσεις, ημερήσιος στόχος κ.λπ.). Κουμπί αποθήκευσης καλεί το save_settings.
+# get_availability_dict(self)
+# Επιστρέφει dictionary με τη διαθεσιμότητα του χρήστη ανά ημέρα και χρονικό διάστημα.
+# save_settings(self, ...)
+# Αποθηκεύει όλες τις ρυθμίσεις μελέτης του χρήστη στο αρχείο user_preferences.json (keyed by username). Εμφανίζει μήνυμα επιβεβαίωσης με CTkMessagebox.
+# Διασύνδεση με άλλα αρχεία
+# ceid_courses.xlsx
+# Περιέχει τα μαθήματα και τα εξάμηνα. Το διαβάζει η μέθοδος load_semesters_from_excel.
+# user_subjects.json
+# Αποθηκεύει τα επιλεγμένα μαθήματα κάθε χρήστη. Το διαβάζουν/γράφουν οι μέθοδοι save_courses και load_chosen_subjects.
+# user_preferences.json
+# Αποθηκεύει τις ρυθμίσεις μελέτης κάθε χρήστη. Το διαβάζει/γράφει η μέθοδος save_settings.
+# CTkMessagebox
+# Εμφανίζει μηνύματα επιβεβαίωσης ή σφάλματος στο χρήστη.
+# CTkInputDialog (από schedule_screen.py)
+# Χρησιμοποιείται για να ζητήσει νέα τιμή αν ο χρήστης βάλει μη έγκυρο ημερήσιο στόχο μελέτης.
+# CourseManager
+# Τα δεδομένα που επιστρέφει η μέθοδος get_selected_subjects_with_hours χρησιμοποιούνται από τον αλγόριθμο προγραμματισμού μελέτης (core_logic.py).
+
+# Το courses.py παρέχει τόσο το UI όσο και τη λογική για αποθήκευση/φόρτωση δεδομένων, 
+# και διασυνδέεται με τα αρχεία δεδομένων και τα υπόλοιπα modules της εφαρμογής.
+
 import customtkinter as ctk
 from CTkMessagebox import CTkMessagebox
 import os

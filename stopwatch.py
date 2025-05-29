@@ -1,3 +1,23 @@
+# Κλάση: StopwatchTimer
+# Ρόλος: Υλοποιεί ένα απλό χρονόμετρο αντίστροφης μέτρησης (countdown timer).
+# Χρησιμοποιείται από:
+# ZoneInScreen (στο zonein.py)
+# Μπορεί να χρησιμοποιηθεί και αυτόνομα.
+# Μέθοδοι:
+# __init__(self, parent)
+# Αρχικοποιεί το χρονόμετρο, δημιουργεί το UI (inputs για ώρες/λεπτά/δευτερόλεπτα, κουμπιά).
+# start_timer(self, hours=0, minutes=0, seconds=0)
+# Ξεκινά το χρονόμετρο με συγκεκριμένη διάρκεια.
+# pause_timer(self)
+# Παύει το χρονόμετρο.
+# resume_timer(self)
+# Συνεχίζει το χρονόμετρο μετά από παύση.
+# update_timer(self)
+# Ενημερώνει το χρόνο κάθε δευτερόλεπτο, σταματά όταν φτάσει στο 0.
+# reset_timer(self)
+# Επαναφέρει το χρονόμετρο στην αρχική του κατάσταση.
+
+
 import customtkinter as ctk
 from tkinter import simpledialog, messagebox
 from courses import CourseManager

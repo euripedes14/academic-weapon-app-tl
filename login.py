@@ -1,3 +1,25 @@
+# Κλάση: LoginScreen
+# Ρόλος: Υλοποιεί τη φόρμα σύνδεσης του χρήστη στην εφαρμογή.
+# Κληρονομεί από:
+# BaseScreen (από το login_signup_basescreen.py), που παρέχει βασική δομή για οθόνες authentication.
+# Μέθοδοι:
+# __init__(self, root)
+# Αρχικοποιεί την οθόνη σύνδεσης, ορίζει τίτλο και καλεί τη self.add_buttons() για να προσθέσει τα κουμπιά.
+# add_buttons(self)
+# Προσθέτει δύο κουμπιά:
+# "Login" (συνδέει με τη μέθοδο self.login)
+# "Sign Up" (συνδέει με τη μέθοδο self.open_signup)
+# login(self)
+# Παίρνει τα στοιχεία από τα πεδία username/password, ελέγχει αν υπάρχουν στο settings.json και αν ο κωδικός είναι σωστός.
+# Αν όλα είναι σωστά, καλεί το main_app από το navigation.py και περνά το username.
+# Αν όχι, εμφανίζει μήνυμα λάθους με CTkMessagebox.
+# open_signup(self)
+# Καταστρέφει το frame και ανοίγει την οθόνη εγγραφής (SignUpScreen από signup_screen.py).
+# Συνάρτηση:
+# login_app(parent=None)
+# Εκκινεί την οθόνη σύνδεσης είτε ως νέο παράθυρο είτε ως κύριο παράθυρο της εφαρμογής.
+
+
 import customtkinter as ctk
 from login_signup_basescreen import BaseScreen
 from CTkMessagebox import CTkMessagebox

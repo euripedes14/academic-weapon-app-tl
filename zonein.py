@@ -1,3 +1,45 @@
+# Κλάση: ZoneInScreen
+# Ρόλος: Υλοποιεί το σύστημα "Zone In" για check-in/check-out μελέτης, επιλογή
+# μαθημάτων και διαχείριση χρονόμετρων.
+# Χρησιμοποιεί:
+# PomodoroTimer (από pomodoro.py)
+# StopwatchTimer (από stopwatch.py)
+# CourseManager (από courses.py) για φόρτωση μαθημάτων
+# CTkMessagebox για μηνύματα
+# Διαβάζει ρυθμίσεις από user_preferences.json
+# Μέθοδοι:
+# __init__(self, parent, username)
+# Αρχικοποιεί το UI, φορτώνει τα μαθήματα του χρήστη, δημιουργεί τα χρονόμετρα.
+# show_subjects_menu(self)
+# Εμφανίζει τα διαθέσιμα μαθήματα για επιλογή check-in. check_in(self)
+# Ελέγχει αν έχουν επιλεγεί μαθήματα, διαβάζει τις ρυθμίσεις timer του χρήστη, 
+# ξεκινά το κατάλληλο χρονόμετρο (Pomodoro ή Stopwatch), ενημερώνει το UI.
+# check_out(self)
+# Ελέγχει αν ολοκληρώθηκε σωστά η συνεδρία, σταματά το χρονόμετρο, ενημερώνει 
+# το UI και εμφανίζει κατάλληλο μήνυμα.
+# open_zonein_screen(parent_frame, username="default") (συνάρτηση)
+# Utility function για να ανοίξει το ZoneInScreen σε οποιοδήποτε frame.
+
+# Συνδέσεις μεταξύ αρχείων
+# pomodoro.py και stopwatch.py:
+# Οι κλάσεις PomodoroTimer και StopwatchTimer χρησιμοποιούνται από το ZoneInScreen 
+# (στο zonein.py) για να παρέχουν τα χρονόμετρα μελέτης.
+# zonein.py:
+# Ενοποιεί τα χρονόμετρα και το UI επιλογής μαθημάτων, διαβάζει τις ρυθμίσεις του 
+# χρήστη και διαχειρίζεται το check-in/check-out.
+# courses.py:
+# Η ZoneInScreen χρησιμοποιεί τον CourseManager για να φορτώσει τα μαθήματα που έχει 
+# επιλέξει ο χρήστης.
+# user_preferences.json:
+# Περιέχει τις ρυθμίσεις του χρήστη για το timer (τύπος, διάρκεια, sessions), τις οποίες 
+# διαβάζει το ZoneInScreen.
+
+# Συνοπτικά:
+# Το ZoneInScreen είναι το κεντρικό boundary object για το Zone In.
+# Τα Pomodoro και Stopwatch είναι control components για τη διαχείριση χρόνου.
+# Όλα τα components συνεργάζονται για να προσφέρουν μια ολοκληρωμένη εμπειρία μελέτης με
+# παρακολούθηση χρόνου και επιλογή μαθημάτων.
+
 import customtkinter as ctk
 from CTkMessagebox import CTkMessagebox
 from pomodoro import PomodoroTimer

@@ -1,3 +1,27 @@
+# Κλάση: PomodoroTimer
+# Ρόλος: Υλοποιεί το χρονόμετρο Pomodoro για διαχείριση μελέτης με εναλλαγή εργασίας/διαλείμματος.
+# Χρησιμοποιείται από:
+# ZoneInScreen (στο zonein.py)
+# Μπορεί να χρησιμοποιηθεί και αυτόνομα σε άλλα frames.
+# Μέθοδοι:
+# __init__(self, parent)
+# Αρχικοποιεί το Pomodoro timer, ορίζει default τιμές (25' εργασία, 5' διάλειμμα), δημιουργεί το UI.
+# setup_ui(self)
+# Δημιουργεί το γραφικό περιβάλλον (labels, κουμπιά, εμφάνιση χρόνου).
+# start_timer(self, sessions=1, work_minutes=25, break_minutes=5)
+# Ξεκινά το χρονόμετρο για συγκεκριμένο αριθμό συνεδριών και διάρκεια.
+# update_count_label(self)
+# Ενημερώνει το label με τον αριθμό ολοκληρωμένων συνεδριών.
+# pause_timer(self)
+# Παύει το χρονόμετρο.
+# resume_timer(self)
+# Συνεχίζει το χρονόμετρο μετά από παύση.
+# update_timer(self)
+# Ενημερώνει το χρόνο κάθε δευτερόλεπτο, εναλλάσσει εργασία/διάλειμμα, ελέγχει αν ολοκληρώθηκαν οι συνεδρίες.
+# reset_timer(self)
+# Επαναφέρει το χρονόμετρο στην αρχική του κατάσταση.
+
+
 import customtkinter as ctk
 from tkinter import simpledialog, messagebox
 from courses import CourseManager
