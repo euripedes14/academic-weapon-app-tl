@@ -19,7 +19,3 @@ def open_study_screen(parent_frame, username=None):
     zonein_frame = ctk.CTkFrame(study_frame)
     zonein_frame.pack(side="left", fill="both", expand=True, padx=20, pady=20)
     zonein.ZoneInScreen(zonein_frame, username=username)
-    # Εμφάνιση Pomodoro (π.χ. δεξιά)
-    #pomodoro_frame = ctk.CTkFrame(study_frame)
-    #pomodoro_frame.pack(side="left", fill="both", expand=True, padx=20, pady=20)
-    #pomodoro.PomodoroTimer(pomodoro_frame)
