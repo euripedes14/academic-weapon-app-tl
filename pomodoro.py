@@ -46,6 +46,7 @@ class PomodoroTimer:
         self.speed = 1
         ########
         self.session_completed = False
+        self._after_id = None
         self.setup_ui()
 
     def setup_ui(self):
@@ -99,6 +100,13 @@ class PomodoroTimer:
         self.update_timer()
 
     def update_timer(self):
+        # Ακύρωση προηγούμενου timer αν υπάρχει
+        if hasattr(self, '_after_id') and self._after_id is not None:
+            try:
+                self.parent.after_cancel(self._after_id)
+            except Exception:
+                pass
+            self._after_id = None
         if not self.is_running:
             return
         if self.seconds_left <= 0:
@@ -119,10 +127,17 @@ class PomodoroTimer:
         minutes, seconds = divmod(self.seconds_left, 60)
         self.time_display.configure(text=f"{minutes:02d}:{seconds:02d}")
         self.seconds_left -= 1
-        self.parent.after(1000, self.update_timer)
+        self._after_id = self.parent.after(1000, self.update_timer)
 
     def reset_timer(self):
-        self.is_running = False
+        # Ακύρωση προηγούμενου timer αν υπάρχει
+        if hasattr(self, '_after_id') and self._after_id is not None:
+            try:
+                self.parent.after_cancel(self._after_id)
+            except Exception:
+                pass
+            self._after_id = None
+        self.is_running = True  # Συνεχίζει τη μέτρηση μετά την επαναφορά
         self.is_break = False
         self.seconds_left = self.work_seconds
         self.mode_label.configure(text="Ώρα Εργασίας")
@@ -130,4 +145,5 @@ class PomodoroTimer:
         self.completed_sessions = 0
         self.update_count_label()
         self.pause_button.configure(text="Παύση", command=self.pause_timer)
+        self.update_timer()
     #########

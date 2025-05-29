@@ -46,6 +46,7 @@ from pomodoro import PomodoroTimer
 from stopwatch import StopwatchTimer
 from courses import CourseManager
 import json
+from streaks_manager import get_streak, increment_streak, reset_streak
 
 
 class ZoneInScreen:
@@ -62,6 +63,14 @@ class ZoneInScreen:
         # Header
         header = ctk.CTkLabel(self.main_frame, text="Zone In", font=("Arial", 20, "bold"))
         header.pack(pady=20)
+
+        # Streaks display
+        self.streak_frame = ctk.CTkFrame(self.main_frame, fg_color="#fff3e0", corner_radius=10)
+        self.streak_frame.pack(pady=(20, 0))
+        self.streak_icon_label = ctk.CTkLabel(self.streak_frame, text="🔥", font=("Arial", 18))
+        self.streak_icon_label.pack(side="left", padx=(10, 2), pady=5)
+        self.streak_value_label = ctk.CTkLabel(self.streak_frame, text=f"Streak: {get_streak(self.username)}", font=("Arial", 16, "bold"), text_color="#e25822")
+        self.streak_value_label.pack(side="left", padx=2, pady=5)
 
         # Subject selection menu under header
         self.subjects_frame = ctk.CTkFrame(self.main_frame)
@@ -104,6 +113,9 @@ class ZoneInScreen:
             cb = ctk.CTkCheckBox(self.subjects_frame, text=subj, variable=var)
             cb.pack(anchor="w", padx=20)
             self.selected_subjects.append((subj, var))
+
+    def update_streak_display(self):
+        self.streak_value_label.configure(text=f"Streak: {get_streak(self.username)}")
 
     def check_in(self):
         selected_subjects = [subject for subject, var in self.selected_subjects if var.get()]
@@ -165,31 +177,42 @@ class ZoneInScreen:
             )
             if self.pomodoro.is_running or pomodoro_incomplete:
                 self.pomodoro.reset_timer()
+                self.pomodoro.pause_timer()  # Βάζει το Pomodoro σε παύση
                 self.checked_in = False
                 self.checkin_btn.configure(state="normal")
                 self.checkout_btn.configure(state="disabled")
+                reset_streak(self.username)
+                self.update_streak_display()
                 CTkMessagebox(title="Προειδοποίηση", message="Δεν ολοκλήρωσες όλες τις συνεδρίες Pomodoro. Θα χαθούν τα streaks!", icon="warning")
             else:
                 self.pomodoro.reset_timer()
                 self.checked_in = False
                 self.checkin_btn.configure(state="normal")
                 self.checkout_btn.configure(state="disabled")
+                increment_streak(self.username)
+                self.update_streak_display()
                 CTkMessagebox(title="Συγχαρητήρια!", message="Συγχαρητήρια! Πήρες το streak σου!", icon="check")
         elif timer_type == "stopwatch":
             if self.stopwatch.is_running and self.stopwatch.elapsed_seconds > 0:
                 self.stopwatch.reset_timer()
+                self.stopwatch.is_running = False  # Βάζει το Stopwatch σε παύση
                 self.checked_in = False
                 self.checkin_btn.configure(state="normal")
                 self.checkout_btn.configure(state="disabled")
+                reset_streak(self.username)
+                self.update_streak_display()
                 CTkMessagebox(title="Προειδοποίηση", message="Θα χάσεις το streak σου!", icon="warning")
             elif not self.stopwatch.is_running and self.stopwatch.elapsed_seconds == 0:
                 self.stopwatch.reset_timer()
                 self.checked_in = False
                 self.checkin_btn.configure(state="normal")
                 self.checkout_btn.configure(state="disabled")
+                increment_streak(self.username)
+                self.update_streak_display()
                 CTkMessagebox(title="Συγχαρητήρια!", message="Συγχαρητήρια! Πήρες το streak σου!", icon="check")
             else:
                 self.stopwatch.reset_timer()
+                self.stopwatch.is_running = False
                 self.checked_in = False
                 self.checkin_btn.configure(state="normal")
                 self.checkout_btn.configure(state="disabled")
@@ -197,7 +220,9 @@ class ZoneInScreen:
         else:
             # fallback για άγνωστο timer
             self.stopwatch.reset_timer()
+            self.stopwatch.is_running = False
             self.pomodoro.reset_timer()
+            self.pomodoro.pause_timer()
             self.checked_in = False
             self.checkin_btn.configure(state="normal")
             self.checkout_btn.configure(state="disabled")
