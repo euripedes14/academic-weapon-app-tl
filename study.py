@@ -1,11 +1,5 @@
 import customtkinter as ctk
 
-# ΑΦΑΙΡΕΣΗ ΟΛΩΝ ΤΩΝ ΣΧΕΤΙΚΩΝ ΜΕ ΕΡΓΑΣΙΕΣ FUNCTIONALITIES
-# Η διαχείριση εργασιών γίνεται πλέον αποκλειστικά στο schedule_screen.py
-# Μπορείς να προσθέσεις εδώ μόνο λειτουργίες σχετικές με μελέτη (π.χ. Pomodoro, ZoneIn, κλπ)
-
-# Παράδειγμα: Εδώ μπορεί να μπει μόνο το UI για Pomodoro/ZoneIn
-
 def open_study_screen(parent_frame, username=None):
     for widget in parent_frame.winfo_children():
         widget.destroy()
