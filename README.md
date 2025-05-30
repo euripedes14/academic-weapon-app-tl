@@ -12,8 +12,8 @@
 2. **Εκκίνηση εφαρμογής:**
    - Τρέξτε το αρχείο `login.py`:
      python [login.py](http://_vscodecontentref_/0)
-   - Εναλλακτικά, μπορείτε να τρέξετε το `navigation.py` για να μεταβείτε απευθείας στην αρχική οθόνη:
-     python [navigation.py](http://_vscodecontentref_/1)
+   - Εναλλακτικά, μπορείτε να τρέξετε το `homescreen.py` για να μεταβείτε απευθείας στην αρχική οθόνη:
+     python [homescreen.py](http://_vscodecontentref_/1)
 
 
 3. **Χρήση:**
