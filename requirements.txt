@@ -1,0 +1,12 @@
+customtkinter
+tkcalendar
+openpyxl
+pillow
+matplotlib
+requests
+geopy
+tkintermapview
+PyMuPDF
+sqlalchemy
+pandas
+ortools
